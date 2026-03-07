@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbsUpDown
@@ -29,16 +28,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.core.ui.EnhancedListItem
 import com.example.core.ui.ErrorView
-import com.example.core.ui.HeaderItem
 import com.example.core.ui.SmartNetworkImage
 import com.example.core.ui.UIStatefulContent
-import com.example.myapplication.features.coutry.model.country.CountryItem
 import com.example.myapplication.features.doordash.model.data.LikedStatus
 import com.example.myapplication.features.doordash.model.data.RestaurantDataModel
 import com.example.myapplication.features.doordash.ui.viewmodel.RestaurantListsViewModel

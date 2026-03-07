@@ -21,13 +21,17 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.example.core.navigation.model.Route
+import com.example.core.navigation.model.getSerializersConfig
+import com.example.core.navigation.model.topLevelDestinations
 import com.example.core.navigation.module.Navigator
 import com.example.core.navigation.module.rememberNavigationState
 import com.example.core.navigation.module.toEntries
 import com.example.core.ui.AppNavigationBar
+import com.example.feature.country.module.navigation.CountryNavEntries
+import com.example.feature.country.module.navigation.CountryNavEntriesWithoutBottomBar
+import com.example.feature.country.module.navigation.countryScreensList
 import com.example.myapplication.R
-import com.example.myapplication.features.coutry.module.navigation.CountryNavEntries
-import com.example.myapplication.features.coutry.module.navigation.CountryNavEntriesWithoutBottomBar
 import com.example.myapplication.features.doordash.module.navigation.DoorDashNavEntries
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,9 +43,7 @@ fun AppFeatureNavigation(
         startRoute = Route.Country.Countries,
         topLevelRoutes = topLevelDestinations().keys,
         serializableConfig = getSerializersConfig(
-            screens = listOf(
-                Route.Country.Countries::class,
-                Route.Country.CountryDetail::class,
+            screens = countryScreensList() + listOf(
                 Route.DoorDash::class
             )
         )

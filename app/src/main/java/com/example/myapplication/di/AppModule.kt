@@ -2,8 +2,6 @@ package com.example.myapplication.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.myapplication.features.coutry.module.network.CountryAPIService
-import com.example.myapplication.features.coutry.module.network.CountryAPIs
 import com.example.myapplication.features.doordash.module.local.LikedDao
 import com.example.myapplication.features.doordash.module.network.DoorDashAPIService
 import com.example.myapplication.features.doordash.module.network.DoorDashAPIs
@@ -43,12 +41,6 @@ class AppModule {
     @Singleton
     @Provides
     fun provideDispatcherDefault() : CoroutineDispatcher = Dispatchers.Default
-
-    @Singleton
-    @Provides
-    fun provideCountryService(
-        service: CountryAPIService
-    ): CountryAPIs = service.provideService()
 
     @Singleton
     @Provides
