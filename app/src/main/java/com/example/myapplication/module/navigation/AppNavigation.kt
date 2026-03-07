@@ -1,6 +1,5 @@
 package com.example.myapplication.module.navigation
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -14,11 +13,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -29,19 +26,25 @@ import com.example.core.navigation.module.rememberNavigationState
 import com.example.core.navigation.module.toEntries
 import com.example.core.ui.AppNavigationBar
 import com.example.myapplication.R
-import com.example.myapplication.features.coutry.ui.screens.CountriesScreen
-import com.example.myapplication.features.coutry.ui.screens.CountryScreen
-import com.example.myapplication.features.coutry.ui.viewmodel.CountryDetailViewModel
+import com.example.myapplication.features.coutry.module.navigation.CountryNavEntries
+import com.example.myapplication.features.coutry.module.navigation.CountryNavEntriesWithoutBottomBar
+import com.example.myapplication.features.doordash.module.navigation.DoorDashNavEntries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CountryFeatureNavigation(
+fun AppFeatureNavigation(
     modifier: Modifier = Modifier
 ) {
     val navigationState = rememberNavigationState(
         startRoute = Route.Country.Countries,
         topLevelRoutes = topLevelDestinations().keys,
-        serializableConfig = serializersConfig
+        serializableConfig = getSerializersConfig(
+            screens = listOf(
+                Route.Country.Countries::class,
+                Route.Country.CountryDetail::class,
+                Route.DoorDash::class
+            )
+        )
     )
     val navigator = remember {
         Navigator(navigationState)
@@ -90,27 +93,8 @@ fun CountryFeatureNavigation(
             },
             entries = navigationState.toEntries(
                 entryProvider {
-                    entry<Route.Country.Countries> {
-                        CountriesScreen {
-                            navigator.navigate(Route.Country.CountryDetail(country = it))
-                        }
-                    }
-                    entry<Route.Country.CountryDetail> {
-                        CountryScreen(
-                            viewModel = hiltViewModel<CountryDetailViewModel, CountryDetailViewModel.Factory> { factory ->
-                                factory.create(country = it.country)
-                            }
-                        )
-                    }
-                    entry<Route.DoorDash> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = stringResource(R.string.title_doordash))
-                        }
-                    }
+                    CountryNavEntries(navigator = navigator)
+                    DoorDashNavEntries(navigator = navigator)
                 }
             )
         )
@@ -119,7 +103,7 @@ fun CountryFeatureNavigation(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun appWithNoBottomBar(
+fun AppWithNoBottomBar(
     modifier: Modifier = Modifier
 ) {
     val backStack = rememberNavBackStack(
@@ -162,18 +146,7 @@ fun appWithNoBottomBar(
                 rememberViewModelStoreNavEntryDecorator()
             ),
             entryProvider = entryProvider {
-//                entry<Route.CountriesRoute> {
-//                    CountriesScreen {
-//                        backStack.add(Route.CountryRoute(country = it))
-//                    }
-//                }
-//                entry<Route.CountryRoute> {
-//                    CountryScreen(
-//                        viewModel = hiltViewModel<CountryDetailViewModel, CountryDetailViewModel.Factory> { factory ->
-//                            factory.create(country = it.country)
-//                        }
-//                    )
-//                }
+                CountryNavEntriesWithoutBottomBar(backStack = backStack)
             }
         )
     }

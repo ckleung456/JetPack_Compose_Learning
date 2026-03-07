@@ -11,7 +11,10 @@ import com.example.core.navigation.model.BottomNavItem
 import com.example.myapplication.R
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.serializer
+import kotlin.reflect.KClass
 
 @Serializable
 sealed interface Route : NavKey {
@@ -31,18 +34,34 @@ sealed interface Route : NavKey {
     data object DoorDash : Route
 }
 
-val serializersConfig = SavedStateConfiguration {
-    serializersModule = SerializersModule {
+@OptIn(kotlinx.serialization.InternalSerializationApi::class)
+fun SerializersModuleBuilder.addPolymorphicScreens(
+    screens: List<KClass<out NavKey>>
+) {
+    screens.forEach { screenClass ->
+        // Add polymorphic mapping for each screen class
         polymorphic(NavKey::class) {
-            subclass(Route.Country.Countries::class, Route.Country.Countries.serializer())
-            subclass(Route.Country.CountryDetail::class, Route.Country.CountryDetail.serializer())
-            subclass(Route.DoorDash::class, Route.DoorDash.serializer())
+            @Suppress("UNCHECKED_CAST")
+            val typeSafeClass = screenClass as KClass<NavKey>
+            subclass(typeSafeClass, typeSafeClass.serializer())
+        }
+    }
+}
+
+fun getSerializersConfig(
+    screens: List<KClass<out NavKey>> = emptyList(),
+): SavedStateConfiguration {
+    return SavedStateConfiguration {
+        serializersModule = SerializersModule {
+            addPolymorphicScreens(screens = screens)
         }
     }
 }
 
 @Composable
-fun topLevelDestinations() : Map<NavKey, BottomNavItem> = mapOf(
+fun topLevelDestinations(
+    moreDestinations: Map<NavKey, BottomNavItem> = emptyMap()
+) : Map<NavKey, BottomNavItem> = mapOf(
     Route.Country.Countries to BottomNavItem(
         icon = Icons.Outlined.Checklist,
         title = stringResource(R.string.title_countries)
@@ -51,4 +70,4 @@ fun topLevelDestinations() : Map<NavKey, BottomNavItem> = mapOf(
         icon = Icons.Outlined.Fastfood,
         title = stringResource(R.string.title_doordash)
     )
-)
+) + moreDestinations
