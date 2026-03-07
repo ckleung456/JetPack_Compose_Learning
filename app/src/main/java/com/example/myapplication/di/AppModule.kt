@@ -2,9 +2,7 @@ package com.example.myapplication.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.myapplication.features.doordash.module.local.LikedDao
-import com.example.myapplication.features.doordash.module.network.DoorDashAPIService
-import com.example.myapplication.features.doordash.module.network.DoorDashAPIs
+import com.example.feature.doordash.module.domain.LikedDao
 import com.example.myapplication.module.local.MyAppDatabase
 import dagger.Module
 import dagger.Provides
@@ -44,13 +42,7 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun provideDoordashService(
-        service: DoorDashAPIService
-    ): DoorDashAPIs = service.provideService()
-
-    @Singleton
-    @Provides
-    fun provideDoordashDb(
+    fun provideDb(
         @ApplicationContext context: Context
     ) : MyAppDatabase = Room.databaseBuilder(
         context = context,

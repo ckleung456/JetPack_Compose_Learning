@@ -31,8 +31,9 @@ import com.example.core.ui.AppNavigationBar
 import com.example.feature.country.module.navigation.CountryNavEntries
 import com.example.feature.country.module.navigation.CountryNavEntriesWithoutBottomBar
 import com.example.feature.country.module.navigation.countryScreensList
+import com.example.feature.doordash.module.navigation.DoorDashNavEntries
+import com.example.feature.doordash.module.navigation.doordashScreensList
 import com.example.myapplication.R
-import com.example.myapplication.features.doordash.module.navigation.DoorDashNavEntries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,9 +44,8 @@ fun AppFeatureNavigation(
         startRoute = Route.Country.Countries,
         topLevelRoutes = topLevelDestinations().keys,
         serializableConfig = getSerializersConfig(
-            screens = countryScreensList() + listOf(
-                Route.DoorDash::class
-            )
+            screens = countryScreensList() +
+            doordashScreensList()
         )
     )
     val navigator = remember {

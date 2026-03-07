@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.myapplication.features.doordash.module.local.LikedDao
-import com.example.myapplication.features.doordash.module.local.LikedDb
+import com.example.feature.doordash.module.domain.LikedDao
+import com.example.feature.doordash.module.domain.LikedDb
 
 
 @Database(

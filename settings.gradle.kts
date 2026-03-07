@@ -18,8 +18,8 @@ pluginManagement {
         }
     }
 }
+
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
@@ -29,4 +29,7 @@ dependencyResolutionManagement {
 rootProject.name = "My Application"
 include(":app")
 include(":core")
-include(":feature-country")
+include("feature-country")
+project(":feature-country").projectDir = file("features/feature-country")
+include(":feature-doordash")
+project(":feature-doordash").projectDir = file("features/feature-doordash")
