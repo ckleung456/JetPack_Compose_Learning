@@ -1,31 +1,41 @@
 package com.example.feature.doordash.module.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.example.core.navigation.module.Navigator
 import com.example.core.navigation.model.Route
+import com.example.feature.doordash.ui.screen.RestaurantDetailScreen
+import com.example.feature.doordash.ui.screen.RestaurantScreen
+import com.example.feature.doordash.ui.viewmodel.RestaurantDetailViewModel
+
 
 @Composable
 fun EntryProviderScope<NavKey>.DoorDashNavEntries(
     navigator: Navigator
 ) {
-    entry<Route.DoorDash> {
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "Doordash")
+    entry<Route.DoorDash.Restaurants> {
+        RestaurantScreen {
+            navigator.navigate(
+                Route.DoorDash.RestaurantDetail(
+                    restaurantId = it
+                )
+            )
         }
+    }
+    entry<Route.DoorDash.RestaurantDetail> {
+        RestaurantDetailScreen(
+            viewModel = hiltViewModel<RestaurantDetailViewModel, RestaurantDetailViewModel.Factory> { factory ->
+                factory.create(
+                    restaurantId = it.restaurantId
+                )
+            }
+        )
     }
 }
 
 fun doordashScreensList() = listOf(
-    Route.DoorDash::class
+    Route.DoorDash.Restaurants::class,
+    Route.DoorDash.RestaurantDetail::class
 )

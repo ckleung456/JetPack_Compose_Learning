@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,9 +42,15 @@ import com.example.feature.doordash.ui.viewmodel.RestaurantListsViewModel
 @Composable
 fun RestaurantScreen(
     modifier: Modifier = Modifier,
-    viewModel: RestaurantListsViewModel = hiltViewModel()
+    viewModel: RestaurantListsViewModel = hiltViewModel(),
+    onRestaurantSelected: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        viewModel.selectedRestaurant.collect {
+            onRestaurantSelected.invoke(it)
+        }
+    }
 
     UIStatefulContent(
         state = uiState,
@@ -88,7 +95,10 @@ internal fun RestaurantsListView(
                     viewModel.onSelectedRestaurant(data.id)
                 },
                 onLikeClick = {
-
+                    viewModel.likedRestaurant(
+                        restaurantId = data.id,
+                        likedStatus = likedStatus
+                    )
                 }
             )
         }
@@ -205,7 +215,6 @@ fun RestaurantListItem(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
         }
     }
 }

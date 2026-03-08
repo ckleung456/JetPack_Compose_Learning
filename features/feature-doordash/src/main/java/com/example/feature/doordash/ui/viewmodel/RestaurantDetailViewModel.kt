@@ -54,7 +54,7 @@ class RestaurantDetailViewModel @AssistedInject constructor(
         )
     }
 
-    fun fetchRestaurantDetail(restaurantId: Long) {
+    fun fetchRestaurantDetail(restaurantId: Long = this.restaurantId) {
         viewModelScope.launch {
             getRestaurantDetailUseCase.invoke(
                 input = GetRestaurantDetailInput(

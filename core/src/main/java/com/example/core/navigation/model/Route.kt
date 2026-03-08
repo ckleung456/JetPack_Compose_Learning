@@ -32,7 +32,15 @@ sealed interface Route : NavKey {
     }
 
     @Serializable
-    data object DoorDash : Route
+    data object DoorDash : Route {
+        @Serializable
+        data object Restaurants : Route
+
+        @Serializable
+        data class RestaurantDetail(
+            val restaurantId: Long
+        ) : Route
+    }
 }
 
 @OptIn(InternalSerializationApi::class)
@@ -67,7 +75,7 @@ fun topLevelDestinations(
         icon = Icons.Outlined.Checklist,
         title = stringResource(R.string.title_countries)
     ),
-    Route.DoorDash to BottomNavItem(
+    Route.DoorDash.Restaurants to BottomNavItem(
         icon = Icons.Outlined.Fastfood,
         title = stringResource(R.string.title_doordash)
     )

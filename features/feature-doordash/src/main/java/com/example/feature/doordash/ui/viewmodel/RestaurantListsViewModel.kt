@@ -46,7 +46,6 @@ class RestaurantListsViewModel @Inject constructor(
         initialValue = Long.MIN_VALUE
     )
 
-
     init {
         getRestaurants()
     }
@@ -97,7 +96,23 @@ class RestaurantListsViewModel @Inject constructor(
                 status = likedStatus
             )
         ) { state ->
-            // no-op
+
+            if (state is UseCaseOutputWithStatus.Success && uiState.value is UIState.Success) {
+                val currentData = (uiState.value as UIState.Success<List<Pair<RestaurantDataModel, LikedStatus>>>)
+                viewModelScope.launch {
+                    _uiState.send(
+                        UIState.Success(
+                            data = currentData.data.map {
+                                if (it.first.id == restaurantId) {
+                                    it.copy(second = state.result)
+                                } else {
+                                    it
+                                }
+                            }
+                        )
+                    )
+                }
+            }
         }
     }
 }
