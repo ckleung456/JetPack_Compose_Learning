@@ -56,6 +56,7 @@ fun RestaurantScreen(
         state = uiState,
         successContent = {
             RestaurantsListView(
+                modifier = modifier,
                 restaurants = it
             )
         },
