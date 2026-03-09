@@ -1,5 +1,6 @@
 package com.example.core.navigation.model
 
+import android.os.Parcelable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Fastfood
@@ -8,7 +9,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.example.core.R
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
@@ -27,7 +27,7 @@ sealed interface Route : NavKey {
 
         @Serializable
         data class CountryDetail(
-            val detailArgument: Map<String, @Contextual Any>
+            val detailArgument: Map<String, Parcelable>
         ) : Route
     }
 

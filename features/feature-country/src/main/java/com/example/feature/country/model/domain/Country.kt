@@ -1,8 +1,9 @@
 package com.example.feature.country.model.domain
 
-import kotlinx.serialization.Serializable
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-@Serializable
+@Parcelize
 data class Country(
     val capital: String?,
     val code: String?,
@@ -11,34 +12,37 @@ data class Country(
     val language: CountryLanguage,
     val name: String?,
     val region: String?
-) : java.io.Serializable
+) : Parcelable
 
-@Serializable
+@Parcelize
 data class CountryCurrency(
     val code: String?,
     val name: String?,
     val symbol: String?
-)
+) : Parcelable
 
-@Serializable
+@Parcelize
 data class CountryLanguage(
     val code: String?,
     val name: String?
-)
+) : Parcelable
 
 sealed class CountryItem(
     val type: CountryItemViewType
-) {
+) : Parcelable {
+    @Parcelize
     data class Letter(
         val letter: String
     ) : CountryItem(type = CountryItemViewType.LETTER_HEADER)
 
+    @Parcelize
     data class CountryInfo(
         val country: Country
     ) : CountryItem(type = CountryItemViewType.COUNTRY)
 }
 
-enum class CountryItemViewType {
+@Parcelize
+enum class CountryItemViewType : Parcelable {
     LETTER_HEADER,
     COUNTRY
 }
