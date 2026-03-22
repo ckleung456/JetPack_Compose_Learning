@@ -57,7 +57,9 @@ fun RestaurantScreen(
         successContent = {
             RestaurantsListView(
                 modifier = modifier,
-                restaurants = it
+                restaurants = it,
+                onRestaurantSelected = viewModel::onSelectedRestaurant,
+                onLikeClick = viewModel::likedRestaurant
             )
         },
         errorContent = { message, _ ->
@@ -73,8 +75,9 @@ fun RestaurantScreen(
 @Composable
 internal fun RestaurantsListView(
     modifier: Modifier = Modifier,
-    viewModel: RestaurantListsViewModel = hiltViewModel(),
-    restaurants: List<Pair<RestaurantDataModel, LikedStatus>>
+    restaurants: List<Pair<RestaurantDataModel, LikedStatus>>,
+    onRestaurantSelected: (Long) -> Unit,
+    onLikeClick: (Long, LikedStatus) -> Unit
 ) {
     LazyColumn(
         modifier = modifier,
@@ -93,13 +96,10 @@ internal fun RestaurantsListView(
                 restaurantStatusType = data.statusType,
                 likedStatus = likedStatus,
                 onClick = {
-                    viewModel.onSelectedRestaurant(data.id)
+                    onRestaurantSelected.invoke(data.id)
                 },
                 onLikeClick = {
-                    viewModel.likedRestaurant(
-                        restaurantId = data.id,
-                        likedStatus = likedStatus
-                    )
+                    onLikeClick.invoke(data.id, likedStatus)
                 }
             )
         }

@@ -37,10 +37,11 @@ fun CountriesScreen(
         state = state,
         successContent = { countryItems ->
             CountriesListView(
-                viewModel = viewModel,
                 countries = countryItems,
                 modifier = modifier
-            )
+            ) {
+                viewModel.onSelectedCountry(country = it)
+            }
         },
         errorContent = { message, _ ->
             ErrorView(
@@ -54,9 +55,9 @@ fun CountriesScreen(
 
 @Composable
 private fun CountriesListView(
-    viewModel: CountriesViewModel,
     modifier: Modifier = Modifier,
-    countries: List<CountryItem>
+    countries: List<CountryItem>,
+    onSelectedCountry: (Country) -> Unit
 ) {
     LazyColumn(
         modifier = modifier,
@@ -79,7 +80,7 @@ private fun CountriesListView(
                     title = countryItem.country.name.orEmpty(),
                     description = countryItem.country.code
                 ) {
-                    viewModel.onSelectedCountry(country = countryItem.country)
+                    onSelectedCountry.invoke(countryItem.country)
                 }
             }
         }
