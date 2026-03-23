@@ -1,5 +1,6 @@
 package com.example.feature.doordash.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,8 +15,8 @@ import com.example.feature.doordash.usecase.LikeRestaurantUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -46,11 +47,8 @@ class RestaurantListsViewModel @Inject constructor(
         )
 
     private val _selectedRestaurant = Channel<Long>(Channel.BUFFERED)
-    val selectedRestaurant: StateFlow<Long> = _selectedRestaurant.receiveAsFlow().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = Long.MIN_VALUE
-    )
+    val selectedRestaurant: Flow<Long> = _selectedRestaurant.receiveAsFlow()
+
 
     // TODO: should call this using map geo point
     fun getRestaurants(
@@ -83,6 +81,7 @@ class RestaurantListsViewModel @Inject constructor(
     }
 
     fun onSelectedRestaurant(restaurantId: Long) {
+        Log.w("restaurantListsViewModel", "onSelectedRestaurant: $restaurantId")
         viewModelScope.launch {
             _selectedRestaurant.send(restaurantId)
         }
