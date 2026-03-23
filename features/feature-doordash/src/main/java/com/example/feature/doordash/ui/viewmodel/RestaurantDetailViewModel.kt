@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -36,23 +37,25 @@ class RestaurantDetailViewModel @AssistedInject constructor(
         fun create(restaurantId: Long): RestaurantDetailViewModel
     }
 
-    val detail: StateFlow<RestaurantDetailDataModel?> = savedStateHandle.getMutableStateFlow(
+    val detail: StateFlow<Pair<RestaurantDetailDataModel, LikedStatus>?> = savedStateHandle.getMutableStateFlow(
         ARGUMENT_RESTAURANT,
         null
     )
 
     private val _uiState = Channel<UIState<Pair<RestaurantDetailDataModel, LikedStatus>>>()
-    val uiState = _uiState.receiveAsFlow().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = UIState.Default
-    )
-
-    init {
-        fetchRestaurantDetail(
-            restaurantId = restaurantId
+    val uiState = _uiState.receiveAsFlow()
+        .onStart {
+            detail.value?.let {
+                _uiState.send(UIState.Success(data = it))
+            } ?: run {
+                fetchRestaurantDetail()
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = UIState.Default
         )
-    }
 
     fun fetchRestaurantDetail(restaurantId: Long = this.restaurantId) {
         viewModelScope.launch {
@@ -64,9 +67,12 @@ class RestaurantDetailViewModel @AssistedInject constructor(
                 launch {
                     when(state) {
                         is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
-                        is UseCaseOutputWithStatus.Success -> _uiState.send(
-                            UIState.Success(data = state.result)
-                        )
+                        is UseCaseOutputWithStatus.Success ->{
+                            savedStateHandle[ARGUMENT_RESTAURANT] = state.result
+                            _uiState.send(
+                                UIState.Success(data = state.result)
+                            )
+                        }
                         is UseCaseOutputWithStatus.Failed -> _uiState.send(
                             UIState.Error(
                                 message = state.error.message.orEmpty(),

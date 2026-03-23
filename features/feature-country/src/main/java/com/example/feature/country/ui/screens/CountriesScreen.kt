@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -25,7 +26,7 @@ fun CountriesScreen(
     onSelectedCountry: (Country) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) {
+    LaunchedEffect("Country") {
         viewModel.selectedCountry.collect { country ->
             country?.let {
                 onSelectedCountry.invoke(it)
@@ -76,11 +77,14 @@ private fun CountriesListView(
                 is CountryItem.Letter -> HeaderItem(
                     title = countryItem.letter
                 )
-                is CountryItem.CountryInfo -> EnhancedListItem(
-                    title = countryItem.country.name.orEmpty(),
-                    description = countryItem.country.code
-                ) {
-                    onSelectedCountry.invoke(countryItem.country)
+                is CountryItem.CountryInfo -> {
+                    val country = remember { countryItem.country }
+                    EnhancedListItem(
+                        title = country.name.orEmpty(),
+                        description = country.code
+                    ) {
+                        onSelectedCountry.invoke(country)
+                    }
                 }
             }
         }

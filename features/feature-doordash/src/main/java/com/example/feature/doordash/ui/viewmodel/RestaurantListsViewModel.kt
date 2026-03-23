@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -33,11 +34,16 @@ class RestaurantListsViewModel @Inject constructor(
     }
 
     private val _uiState = Channel<UIState<List<Pair<RestaurantDataModel, LikedStatus>>>>(Channel.BUFFERED)
-    val uiState = _uiState.receiveAsFlow().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = UIState.Default
-    )
+    val uiState = _uiState
+        .receiveAsFlow()
+        .onStart {
+            getRestaurants()
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = UIState.Default
+        )
 
     private val _selectedRestaurant = Channel<Long>(Channel.BUFFERED)
     val selectedRestaurant: StateFlow<Long> = _selectedRestaurant.receiveAsFlow().stateIn(
@@ -45,10 +51,6 @@ class RestaurantListsViewModel @Inject constructor(
         started = SharingStarted.Lazily,
         initialValue = Long.MIN_VALUE
     )
-
-    init {
-        getRestaurants()
-    }
 
     // TODO: should call this using map geo point
     fun getRestaurants(

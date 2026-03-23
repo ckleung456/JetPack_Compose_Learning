@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,24 +31,25 @@ class CountriesViewModel @Inject constructor(
     private val _countries = savedStateHandle.get<List<CountryItem>>(ARGUMENT_COUNTRIES)
 
     private val _uiState = Channel<UIState<List<CountryItem>>>(Channel.BUFFERED)
-    val uiState = _uiState.receiveAsFlow().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = UIState.Default
-    )
+    val uiState = _uiState
+        .receiveAsFlow()
+        .onStart {
+            if (_countries.isNullOrEmpty()) {
+                getCountries()
+            } else {
+                viewModelScope.launch {
+                    _uiState.send(UIState.Success(data = _countries))
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = UIState.Default
+        )
 
     private val _selectedCountry = Channel<Country>(Channel.BUFFERED)
     val selectedCountry: Flow<Country?> = _selectedCountry.receiveAsFlow()
-
-    init {
-        if (_countries.isNullOrEmpty()) {
-            getCountries()
-        } else {
-            viewModelScope.launch {
-                _uiState.send(UIState.Success(data = _countries))
-            }
-        }
-    }
 
     fun getCountries() {
         viewModelScope.launch {

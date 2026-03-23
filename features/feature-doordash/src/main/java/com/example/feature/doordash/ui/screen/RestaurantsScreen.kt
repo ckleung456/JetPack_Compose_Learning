@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +47,7 @@ fun RestaurantScreen(
     onRestaurantSelected: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) {
+    LaunchedEffect("Restaurant") {
         viewModel.selectedRestaurant.collect {
             onRestaurantSelected.invoke(it)
         }
@@ -85,7 +86,8 @@ internal fun RestaurantsListView(
     ) {
         items(restaurants) { restaurantInfo ->
             val data = restaurantInfo.first
-            val likedStatus = restaurantInfo.second
+            val likedStatus = remember { restaurantInfo.second }
+            val restaurantId = remember { data.id }
 
             RestaurantListItem(
                 imageUrl = data.coverImgUrl.orEmpty(),
@@ -96,10 +98,10 @@ internal fun RestaurantsListView(
                 restaurantStatusType = data.statusType,
                 likedStatus = likedStatus,
                 onClick = {
-                    onRestaurantSelected.invoke(data.id)
+                    onRestaurantSelected.invoke(restaurantId)
                 },
                 onLikeClick = {
-                    onLikeClick.invoke(data.id, likedStatus)
+                    onLikeClick.invoke(restaurantId, likedStatus)
                 }
             )
         }
