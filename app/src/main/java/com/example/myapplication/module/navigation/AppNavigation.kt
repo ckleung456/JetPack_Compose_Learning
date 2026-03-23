@@ -17,21 +17,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.core.navigation.model.Route
+import com.example.core.navigation.model.BottomNavItem
 import com.example.core.navigation.model.getSerializersConfig
-import com.example.core.navigation.model.topLevelDestinations
 import com.example.core.navigation.module.Navigator
 import com.example.core.navigation.module.rememberNavigationState
 import com.example.core.navigation.module.toEntries
 import com.example.core.ui.AppNavigationBar
+import com.example.feature.country.model.domain.CountryRoute
 import com.example.feature.country.module.navigation.CountryNavEntries
 import com.example.feature.country.module.navigation.CountryNavEntriesWithoutBottomBar
+import com.example.feature.country.module.navigation.countryRouteTopDestination
 import com.example.feature.country.module.navigation.countryScreensList
 import com.example.feature.doordash.module.navigation.DoorDashNavEntries
+import com.example.feature.doordash.module.navigation.doordashRouteTopDestination
 import com.example.feature.doordash.module.navigation.doordashScreensList
 import com.example.myapplication.R
 
@@ -40,9 +43,13 @@ import com.example.myapplication.R
 fun AppFeatureNavigation(
     modifier: Modifier = Modifier
 ) {
+    val topDestinations = listOf<Pair<NavKey, BottomNavItem>>(
+        countryRouteTopDestination(),
+        doordashRouteTopDestination()
+    ).toMap()
     val navigationState = rememberNavigationState(
-        startRoute = Route.Country.Countries,
-        topLevelRoutes = topLevelDestinations().keys,
+        startRoute = CountryRoute.Countries,
+        topLevelRoutes = topDestinations.keys,
         serializableConfig = getSerializersConfig(
             screens = countryScreensList() +
             doordashScreensList()
@@ -56,8 +63,8 @@ fun AppFeatureNavigation(
         modifier = modifier,
         bottomBar = {
             AppNavigationBar(
-                selectedKey = Route.Country.Countries,
-                items = topLevelDestinations(),
+                selectedKey = CountryRoute.Countries,
+                items = topDestinations,
                 onSelectKey = {
                     navigator.navigate(it)
                 }
@@ -109,7 +116,7 @@ fun AppWithNoBottomBar(
     modifier: Modifier = Modifier
 ) {
     val backStack = rememberNavBackStack(
-        Route.Country.Countries
+        CountryRoute.Countries
     )
     Scaffold(
         modifier = modifier,

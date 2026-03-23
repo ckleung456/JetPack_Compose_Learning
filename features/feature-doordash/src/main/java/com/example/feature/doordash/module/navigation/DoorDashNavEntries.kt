@@ -1,11 +1,15 @@
 package com.example.feature.doordash.module.navigation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Fastfood
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.example.core.navigation.model.BottomNavItem
 import com.example.core.navigation.module.Navigator
-import com.example.core.navigation.model.Route
+import com.example.feature.doordash.model.domain.DoordashRoute
 import com.example.feature.doordash.ui.screen.RestaurantDetailScreen
 import com.example.feature.doordash.ui.screen.RestaurantScreen
 import com.example.feature.doordash.ui.viewmodel.RestaurantDetailViewModel
@@ -15,16 +19,16 @@ import com.example.feature.doordash.ui.viewmodel.RestaurantDetailViewModel
 fun EntryProviderScope<NavKey>.DoorDashNavEntries(
     navigator: Navigator
 ) {
-    entry<Route.DoorDash.Restaurants> {
+    entry<DoordashRoute.Restaurants> {
         RestaurantScreen {
             navigator.navigate(
-                Route.DoorDash.RestaurantDetail(
+                DoordashRoute.RestaurantDetail(
                     restaurantId = it
                 )
             )
         }
     }
-    entry<Route.DoorDash.RestaurantDetail> {
+    entry<DoordashRoute.RestaurantDetail> {
         RestaurantDetailScreen(
             viewModel = hiltViewModel<RestaurantDetailViewModel, RestaurantDetailViewModel.Factory> { factory ->
                 factory.create(
@@ -36,6 +40,15 @@ fun EntryProviderScope<NavKey>.DoorDashNavEntries(
 }
 
 fun doordashScreensList() = listOf(
-    Route.DoorDash.Restaurants::class,
-    Route.DoorDash.RestaurantDetail::class
+    DoordashRoute.Restaurants::class,
+    DoordashRoute.RestaurantDetail::class
+)
+
+@Composable
+fun doordashRouteTopDestination(): Pair<NavKey, BottomNavItem> = Pair(
+    DoordashRoute.Restaurants,
+    BottomNavItem(
+        icon = Icons.Outlined.Fastfood,
+        title = stringResource(com.example.core.R.string.title_doordash)
+    )
 )
