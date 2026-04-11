@@ -9,6 +9,7 @@ import com.example.feature.country.model.domain.Country
 import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.usecase.GetCountriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,22 +55,24 @@ class CountriesViewModel @Inject constructor(
 
     fun getCountries() {
         viewModelScope.launch {
-            getCountriesUseCase.invoke(
-                input = Unit
-            ) { state ->
-                launch {
-                    when (state) {
-                        is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
-                        is UseCaseOutputWithStatus.Success -> {
-                            savedStateHandle[ARGUMENT_COUNTRIES] = state.result
-                            _uiState.send(UIState.Success(data = state.result))
-                        }
-                        is UseCaseOutputWithStatus.Failed -> _uiState.send(
-                            UIState.Error(
-                                message = state.error.message.orEmpty(),
-                                kind = state.error.kind
+            withContext(Dispatchers.IO) {
+                getCountriesUseCase.invoke(
+                    input = Unit
+                ).collect { state ->
+                    launch {
+                        when (state) {
+                            is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
+                            is UseCaseOutputWithStatus.Success -> {
+                                savedStateHandle[ARGUMENT_COUNTRIES] = state.result
+                                _uiState.send(UIState.Success(data = state.result))
+                            }
+                            is UseCaseOutputWithStatus.Failed -> _uiState.send(
+                                UIState.Error(
+                                    message = state.error.message.orEmpty(),
+                                    kind = state.error.kind
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }

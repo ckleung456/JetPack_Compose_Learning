@@ -1,6 +1,7 @@
 package com.example.feature.doordash.usecase
 
 import com.example.core.usecase.FlowUseCase
+import com.example.core.usecase.UseCaseOutputWithStatus
 import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.usecase.LikeRestaurantUseCaseInput
 import com.example.feature.doordash.module.domain.DoordashDbRepository
@@ -12,7 +13,7 @@ import javax.inject.Inject
 @ViewModelScoped
 class LikeRestaurantUseCase @Inject constructor(
     val localRepository: DoordashDbRepository
-) : FlowUseCase<LikeRestaurantUseCaseInput, LikedStatus>() {
+) : FlowUseCase<LikeRestaurantUseCaseInput, LikedStatus, LikedStatus>() {
     override suspend fun flowWork(input: LikeRestaurantUseCaseInput): Flow<LikedStatus> =
         flow {
             // TODO: In reality, it should be api call then
@@ -28,6 +29,8 @@ class LikeRestaurantUseCase @Inject constructor(
                 restaurantId = input.restaurantId,
                 likedStatus = likedStatus
             )
-            likedStatus
         }
+
+    override suspend fun onSucceedDataHandling(intermediate: LikedStatus): UseCaseOutputWithStatus.Success<LikedStatus> =
+        UseCaseOutputWithStatus.Success(intermediate)
 }

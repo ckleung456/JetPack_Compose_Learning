@@ -1,6 +1,5 @@
 package com.example.feature.doordash.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -56,32 +56,33 @@ class RestaurantListsViewModel @Inject constructor(
         lng: Float = DOOR_DASH_LNG
     ) {
         viewModelScope.launch {
-           getRestaurantListUseCase.invoke(
-               input = GetNearByRestaurantInput(
-                   lat = lat,
-                   lng = lng
-               )
-           ) { state ->
-               launch(Dispatchers.Main) {
-                   when (state) {
-                       is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
-                       is UseCaseOutputWithStatus.Success -> _uiState.send(
-                           UIState.Success(data = state.result)
-                       )
-                       is UseCaseOutputWithStatus.Failed -> _uiState.send(
-                           UIState.Error(
-                               message = state.error.message.orEmpty(),
-                               kind = state.error.kind
-                           )
-                       )
-                   }
-               }
-           }
+            withContext(Dispatchers.IO) {
+                getRestaurantListUseCase.invoke(
+                    input = GetNearByRestaurantInput(
+                        lat = lat,
+                        lng = lng
+                    )
+                ).collect { state ->
+                    launch(Dispatchers.Main) {
+                        when (state) {
+                            is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
+                            is UseCaseOutputWithStatus.Success -> _uiState.send(
+                                UIState.Success(data = state.result)
+                            )
+                            is UseCaseOutputWithStatus.Failed -> _uiState.send(
+                                UIState.Error(
+                                    message = state.error.message.orEmpty(),
+                                    kind = state.error.kind
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 
     fun onSelectedRestaurant(restaurantId: Long) {
-        Log.w("restaurantListsViewModel", "onSelectedRestaurant: $restaurantId")
         viewModelScope.launch {
             _selectedRestaurant.send(restaurantId)
         }
@@ -91,27 +92,28 @@ class RestaurantListsViewModel @Inject constructor(
         restaurantId: Long,
         likedStatus: LikedStatus
     ) = viewModelScope.launch {
-        likeRestaurantUseCase.invoke(
-            input = LikeRestaurantUseCaseInput(
-                restaurantId = restaurantId,
-                status = likedStatus
-            )
-        ) { state ->
-
-            if (state is UseCaseOutputWithStatus.Success && uiState.value is UIState.Success) {
-                val currentData = (uiState.value as UIState.Success<List<Pair<RestaurantDataModel, LikedStatus>>>)
-                viewModelScope.launch {
-                    _uiState.send(
-                        UIState.Success(
-                            data = currentData.data.map {
-                                if (it.first.id == restaurantId) {
-                                    it.copy(second = state.result)
-                                } else {
-                                    it
+        withContext(Dispatchers.IO) {
+            likeRestaurantUseCase.invoke(
+                input = LikeRestaurantUseCaseInput(
+                    restaurantId = restaurantId,
+                    status = likedStatus
+                )
+            ).collect { state ->
+                if (state is UseCaseOutputWithStatus.Success && uiState.value is UIState.Success) {
+                    val currentData = (uiState.value as UIState.Success<List<Pair<RestaurantDataModel, LikedStatus>>>)
+                    viewModelScope.launch {
+                        _uiState.send(
+                            UIState.Success(
+                                data = currentData.data.map {
+                                    if (it.first.id == restaurantId) {
+                                        it.copy(second = state.result)
+                                    } else {
+                                        it
+                                    }
                                 }
-                            }
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

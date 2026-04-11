@@ -23,7 +23,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -36,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.ErrorView
 import com.example.core.ui.SmartNetworkImage
 import com.example.core.ui.UIStatefulContent
+import com.example.core.utils.Utils.ObserveAsEvents
 import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.RestaurantDataModel
 import com.example.feature.doordash.ui.viewmodel.RestaurantListsViewModel
@@ -47,10 +47,11 @@ fun RestaurantScreen(
     onRestaurantSelected: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect("Restaurant") {
-        viewModel.selectedRestaurant.collect {
-            onRestaurantSelected.invoke(it)
-        }
+    ObserveAsEvents(
+        flow = viewModel.selectedRestaurant,
+        key1 = "Restaurant"
+    ) { restaurantId ->
+        onRestaurantSelected.invoke(restaurantId)
     }
 
     UIStatefulContent(

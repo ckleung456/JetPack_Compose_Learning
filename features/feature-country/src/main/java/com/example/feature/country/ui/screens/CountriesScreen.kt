@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -15,6 +14,7 @@ import com.example.core.ui.EnhancedListItem
 import com.example.core.ui.ErrorView
 import com.example.core.ui.HeaderItem
 import com.example.core.ui.UIStatefulContent
+import com.example.core.utils.Utils.ObserveAsEvents
 import com.example.feature.country.model.domain.Country
 import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.ui.viewmodel.CountriesViewModel
@@ -26,11 +26,12 @@ fun CountriesScreen(
     onSelectedCountry: (Country) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect("Country") {
-        viewModel.selectedCountry.collect { country ->
-            country?.let {
-                onSelectedCountry.invoke(it)
-            }
+    ObserveAsEvents(
+        flow = viewModel.selectedCountry,
+        key1 = "Country"
+    ) { country ->
+        country?.let {
+            onSelectedCountry.invoke(it)
         }
     }
 

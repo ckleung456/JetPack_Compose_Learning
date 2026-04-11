@@ -13,6 +13,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel(assistedFactory = RestaurantDetailViewModel.Factory::class)
 class RestaurantDetailViewModel @AssistedInject constructor(
@@ -59,26 +61,28 @@ class RestaurantDetailViewModel @AssistedInject constructor(
 
     fun fetchRestaurantDetail(restaurantId: Long = this.restaurantId) {
         viewModelScope.launch {
-            getRestaurantDetailUseCase.invoke(
-                input = GetRestaurantDetailInput(
-                    restaurantId = restaurantId
-                )
-            ) { state ->
-                launch {
-                    when(state) {
-                        is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
-                        is UseCaseOutputWithStatus.Success ->{
-                            savedStateHandle[ARGUMENT_RESTAURANT] = state.result
-                            _uiState.send(
-                                UIState.Success(data = state.result)
+            withContext(Dispatchers.IO) {
+                getRestaurantDetailUseCase.invoke(
+                    input = GetRestaurantDetailInput(
+                        restaurantId = restaurantId
+                    )
+                ).collect { state ->
+                    launch {
+                        when(state) {
+                            is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
+                            is UseCaseOutputWithStatus.Success ->{
+                                savedStateHandle[ARGUMENT_RESTAURANT] = state.result
+                                _uiState.send(
+                                    UIState.Success(data = state.result)
+                                )
+                            }
+                            is UseCaseOutputWithStatus.Failed -> _uiState.send(
+                                UIState.Error(
+                                    message = state.error.message.orEmpty(),
+                                    kind = state.error.kind
+                                )
                             )
                         }
-                        is UseCaseOutputWithStatus.Failed -> _uiState.send(
-                            UIState.Error(
-                                message = state.error.message.orEmpty(),
-                                kind = state.error.kind
-                            )
-                        )
                     }
                 }
             }
