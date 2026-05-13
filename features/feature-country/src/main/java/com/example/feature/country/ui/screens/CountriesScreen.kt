@@ -63,6 +63,7 @@ fun CountriesScreen(
 
         },
         errorContent = { message, _ ->
+            isRefreshing = false
             ErrorView(
                 message = message
             ) {
