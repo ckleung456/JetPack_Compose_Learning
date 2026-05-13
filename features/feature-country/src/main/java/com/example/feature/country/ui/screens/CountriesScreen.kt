@@ -29,6 +29,7 @@ fun CountriesScreen(
     onSelectedCountry: (Country) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var isRefreshing by remember { mutableStateOf(false) }
     ObserveAsEvents(
         flow = viewModel.selectedCountry,
         key1 = "Country"
@@ -40,16 +41,26 @@ fun CountriesScreen(
 
     UIStatefulContent(
         state = state,
+        loadingContent = {
+            isRefreshing = true
+        },
         successContent = { countryItems ->
-            CountriesListView(
-                countries = countryItems,
-                modifier = modifier,
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
                 onRefresh = {
                     viewModel.getCountries()
-                }
+                },
+                modifier = modifier
             ) {
-                viewModel.onSelectedCountry(country = it)
+                isRefreshing = false
+                CountriesListView(
+                    countries = countryItems,
+                    modifier = modifier
+                ) {
+                    viewModel.onSelectedCountry(country = it)
+                }
             }
+
         },
         errorContent = { message, _ ->
             ErrorView(
@@ -65,44 +76,32 @@ fun CountriesScreen(
 private fun CountriesListView(
     modifier: Modifier = Modifier,
     countries: List<CountryItem>,
-    onRefresh: () -> Unit = {},
     onSelectedCountry: (Country) -> Unit
 ) {
-    var isRefreshing by remember { mutableStateOf(false) }
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = {
-            isRefreshing = true
-            onRefresh.invoke()
-            isRefreshing = false
-        },
-        modifier = modifier
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp)
     ) {
-        LazyColumn(
-            modifier = modifier,
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            items(
-                items = countries,
-                key = { countryItem ->
-                    when (countryItem) {
-                        is CountryItem.Letter -> countryItem.letter
-                        is CountryItem.CountryInfo ->countryItem.country.code.orEmpty()
-                    }
+        items(
+            items = countries,
+            key = { countryItem ->
+                when (countryItem) {
+                    is CountryItem.Letter -> countryItem.letter
+                    is CountryItem.CountryInfo ->countryItem.country.code.orEmpty()
                 }
-            ) { countryItem ->
-                when(countryItem) {
-                    is CountryItem.Letter -> HeaderItem(
-                        title = countryItem.letter
-                    )
-                    is CountryItem.CountryInfo -> {
-                        val country = remember { countryItem.country }
-                        EnhancedListItem(
-                            title = country.name.orEmpty(),
-                            description = country.code
-                        ) {
-                            onSelectedCountry.invoke(country)
-                        }
+            }
+        ) { countryItem ->
+            when(countryItem) {
+                is CountryItem.Letter -> HeaderItem(
+                    title = countryItem.letter
+                )
+                is CountryItem.CountryInfo -> {
+                    val country = remember { countryItem.country }
+                    EnhancedListItem(
+                        title = country.name.orEmpty(),
+                        description = country.code
+                    ) {
+                        onSelectedCountry.invoke(country)
                     }
                 }
             }
