@@ -3,16 +3,15 @@ package com.example.feature.country.module.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.example.core.navigation.model.BottomNavItem
+import com.example.core.navigation.model.Route
 import com.example.core.navigation.module.Navigator
-import com.example.feature.country.R
 import com.example.feature.country.model.domain.Country
-import com.example.feature.country.model.domain.CountryRoute
+import com.example.feature.country.model.navigation.CountryRoute
 import com.example.feature.country.ui.screens.CountriesScreen
 import com.example.feature.country.ui.screens.CountryDetailScreen
 import com.example.feature.country.ui.viewmodel.CountryDetailViewModel
@@ -44,6 +43,27 @@ fun EntryProviderScope<NavKey>.CountryNavEntries(
             }
         )
     }
+//    entry<Route.Country.Countries> {
+//        CountriesScreen {
+//            navigator.navigate(
+//                Route.Country.CountryDetail(
+//                    detailArgument = mapOf(
+//                        COUNTRY_DETAIL_KEY to it
+//                    )
+//                )
+//            )
+//        }
+//    }
+//    entry<Route.Country.CountryDetail> {
+//        CountryDetailScreen(
+//            viewModel = hiltViewModel<CountryDetailViewModel, CountryDetailViewModel.Factory> { factory ->
+//                val country = it.detailArgument.getValue(COUNTRY_DETAIL_KEY) as? Country
+//                factory.create(
+//                    country = country
+//                )
+//            }
+//        )
+//    }
 }
 
 @Composable
@@ -71,6 +91,27 @@ fun EntryProviderScope<NavKey>.CountryNavEntriesWithoutBottomBar(
             }
         )
     }
+//    entry<Route.Country.Countries> {
+//        CountriesScreen {
+//            backStack.add(
+//                Route.Country.CountryDetail(
+//                    detailArgument = mapOf(
+//                        COUNTRY_DETAIL_KEY to it
+//                    )
+//                )
+//            )
+//        }
+//    }
+//    entry<Route.Country.CountryDetail> {
+//        CountryDetailScreen(
+//            viewModel = hiltViewModel<CountryDetailViewModel, CountryDetailViewModel.Factory> { factory ->
+//                val country = it.detailArgument.getValue(COUNTRY_DETAIL_KEY) as? Country
+//                factory.create(
+//                    country = country
+//                )
+//            }
+//        )
+//    }
 }
 
 fun countryScreensList() = listOf(
@@ -78,10 +119,13 @@ fun countryScreensList() = listOf(
     CountryRoute.CountryDetail::class
 )
 
-@Composable
-fun countryRouteTopDestination(): Pair<NavKey, BottomNavItem> = Pair(
-    CountryRoute.Countries, BottomNavItem(
+fun countriesDestination() : Map<NavKey, BottomNavItem> = mapOf(
+    CountryRoute.Countries to BottomNavItem(
         icon = Icons.Outlined.Checklist,
-        title = stringResource(R.string.title_countries)
+        title = "Countries"
     )
 )
+
+//    Route.Country.Countries::class,
+//    Route.Country.CountryDetail::class
+//)
