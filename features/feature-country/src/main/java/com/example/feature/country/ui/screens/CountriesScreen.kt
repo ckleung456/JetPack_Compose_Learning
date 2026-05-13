@@ -3,9 +3,12 @@ package com.example.feature.country.ui.screens
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -40,7 +43,10 @@ fun CountriesScreen(
         successContent = { countryItems ->
             CountriesListView(
                 countries = countryItems,
-                modifier = modifier
+                modifier = modifier,
+                onRefresh = {
+                    viewModel.getCountries()
+                }
             ) {
                 viewModel.onSelectedCountry(country = it)
             }
@@ -59,32 +65,44 @@ fun CountriesScreen(
 private fun CountriesListView(
     modifier: Modifier = Modifier,
     countries: List<CountryItem>,
+    onRefresh: () -> Unit = {},
     onSelectedCountry: (Country) -> Unit
 ) {
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(16.dp)
+    var isRefreshing by remember { mutableStateOf(false) }
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            onRefresh.invoke()
+            isRefreshing = false
+        },
+        modifier = modifier
     ) {
-        items(
-            items = countries,
-            key = { countryItem ->
-                when (countryItem) {
-                    is CountryItem.Letter -> countryItem.letter
-                    is CountryItem.CountryInfo ->countryItem.country.code.orEmpty()
+        LazyColumn(
+            modifier = modifier,
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            items(
+                items = countries,
+                key = { countryItem ->
+                    when (countryItem) {
+                        is CountryItem.Letter -> countryItem.letter
+                        is CountryItem.CountryInfo ->countryItem.country.code.orEmpty()
+                    }
                 }
-            }
-        ) { countryItem ->
-            when(countryItem) {
-                is CountryItem.Letter -> HeaderItem(
-                    title = countryItem.letter
-                )
-                is CountryItem.CountryInfo -> {
-                    val country = remember { countryItem.country }
-                    EnhancedListItem(
-                        title = country.name.orEmpty(),
-                        description = country.code
-                    ) {
-                        onSelectedCountry.invoke(country)
+            ) { countryItem ->
+                when(countryItem) {
+                    is CountryItem.Letter -> HeaderItem(
+                        title = countryItem.letter
+                    )
+                    is CountryItem.CountryInfo -> {
+                        val country = remember { countryItem.country }
+                        EnhancedListItem(
+                            title = country.name.orEmpty(),
+                            description = country.code
+                        ) {
+                            onSelectedCountry.invoke(country)
+                        }
                     }
                 }
             }

@@ -71,29 +71,3 @@ fun TopLoadingBar(
         )
     }
 }
-
-//@Composable
-//fun PullToRefreshScreen(
-//    isLoading: Boolean,
-//    onRefresh: () -> Unit,
-//    content: @Composable () -> Unit
-//) {
-//    val pullRefreshState = rememberPullRefreshState(
-//        refreshing = isLoading,
-//        onRefresh = onRefresh
-//    )
-//
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .pullRefresh(pullRefreshState)
-//    ) {
-//        content()
-//
-//        PullRefreshIndicator(
-//            refreshing = isLoading,
-//            state = pullRefreshState,
-//            modifier = Modifier.align(Alignment.TopCenter)
-//        )
-//    }
-//}
