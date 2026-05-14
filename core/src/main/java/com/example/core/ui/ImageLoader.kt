@@ -26,11 +26,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImagePainter
-import coil.compose.SubcomposeAsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 
 sealed class ImageLoadState {
     object Loading : ImageLoadState()
@@ -52,7 +52,7 @@ fun SmartNetworkImage(
 ) {
     val context = LocalContext.current
 
-    val painter = rememberAsyncImagePainter(
+    SubcomposeAsyncImage(
         model = ImageRequest.Builder(context)
             .data(url)
             .apply {
@@ -65,71 +65,54 @@ fun SmartNetworkImage(
                 }
             }
             .crossfade(true)
-            .build()
-    )
-
-    Box(
+            .build(),
         modifier = modifier,
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painter,
-            contentDescription = contentDescription,
-            contentScale = contentScale,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        when (val state = painter.state) {
-            is AsyncImagePainter.State.Loading -> {
-                if (showLoadingIndicator) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(placeholderColor),
-                        contentAlignment = Alignment.Center
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        loading = {
+            if (showLoadingIndicator) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(placeholderColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        },
+        error = {
+            if (showErrorIndicator) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(errorColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        CircularProgressIndicator(
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(24.dp)
+                        Icon(
+                            imageVector = Icons.Default.BrokenImage,
+                            contentDescription = "Error",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Failed to load image",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
             }
-
-            is AsyncImagePainter.State.Error -> {
-                if (showErrorIndicator) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(errorColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.BrokenImage,
-                                contentDescription = "Error",
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Failed to load image",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                }
-            }
-
-            else -> {
-                // Image loaded successfully, no overlay needed
-            }
         }
-    }
+    )
 }
 
 // Circular Network Image (for profile pictures)
