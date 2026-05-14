@@ -34,8 +34,8 @@ fun SimpleLoadingView(
 // Loading with text
 @Composable
 fun LoadingWithText(
-    message: String = "Loading...",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    message: String = "Loading..."
 ) {
     Column(
         modifier = modifier.fillMaxSize(),

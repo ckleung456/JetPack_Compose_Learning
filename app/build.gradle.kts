@@ -81,6 +81,7 @@ dependencies {
 
     // dagger
     implementation(libs.hilt.android)
+    implementation(libs.androidx.compose.runtime.livedata)
     ksp(libs.hilt.compiler)
 
     // room

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="title_countries">Countries</string>
+    <string name="title_country_detail">Country Detail</string>
+    <string name="hint_search">Search by name, code, or capital</string>
 </resources>

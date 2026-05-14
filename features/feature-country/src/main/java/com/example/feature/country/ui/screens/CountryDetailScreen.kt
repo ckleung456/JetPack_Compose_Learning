@@ -2,10 +2,14 @@ package com.example.feature.country.ui.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.FullScreenCenteredContent
+import com.example.core.ui.TopBarStateManager
+import com.example.feature.country.R
 import com.example.feature.country.ui.viewmodel.CountryDetailViewModel
 import kotlin.text.orEmpty
 
@@ -13,7 +17,16 @@ import kotlin.text.orEmpty
 fun CountryDetailScreen(
     viewModel: CountryDetailViewModel
 ) {
+    val topBarStateManager = TopBarStateManager.LocalTopBarStateManager.current
+    val title = stringResource(R.string.title_country_detail)
     val country by viewModel.detail.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        topBarStateManager.updateConfig(
+            title = title,
+            navigationIconEnabled = true
+        )
+    }
+
     FullScreenCenteredContent(
         modifier = Modifier.fillMaxSize(),
         imageUrl = country?.flag.orEmpty(),

@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.ui.model.UIState
 import com.example.core.usecase.UseCaseOutputWithStatus
+import com.example.feature.country.model.domain.CountriesUIState
 import com.example.feature.country.model.domain.Country
 import com.example.feature.country.model.domain.CountryItem
+import com.example.feature.country.model.domain.SearchState
 import com.example.feature.country.usecase.GetCountriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,17 +32,25 @@ class CountriesViewModel @Inject constructor(
         private const val ARGUMENT_COUNTRIES = "$TAG.COUNTRIES"
     }
 
-    private val _countries = savedStateHandle.get<List<CountryItem>>(ARGUMENT_COUNTRIES)
+    private val _countries: List<CountryItem>
+        get() = savedStateHandle.get<List<CountryItem>>(ARGUMENT_COUNTRIES).orEmpty()
 
-    private val _uiState = Channel<UIState<List<CountryItem>>>(Channel.BUFFERED)
+    private val _uiState = Channel<UIState<CountriesUIState>>(Channel.BUFFERED)
     val uiState = _uiState
         .receiveAsFlow()
         .onStart {
-            if (_countries.isNullOrEmpty()) {
+            if (_countries.isEmpty()) {
                 getCountries()
             } else {
                 viewModelScope.launch {
-                    _uiState.send(UIState.Success(data = _countries))
+                    _uiState.send(
+                        UIState.Success(
+                            data = CountriesUIState(
+                                countries = _countries,
+                                searchState = SearchState()
+                            )
+                        )
+                    )
                 }
             }
         }
@@ -64,7 +74,14 @@ class CountriesViewModel @Inject constructor(
                             is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
                             is UseCaseOutputWithStatus.Success -> {
                                 savedStateHandle[ARGUMENT_COUNTRIES] = state.result
-                                _uiState.send(UIState.Success(data = state.result))
+                                _uiState.send(
+                                    UIState.Success(
+                                        data = CountriesUIState(
+                                            countries = state.result,
+                                            searchState = SearchState()
+                                        )
+                                    )
+                                )
                             }
                             is UseCaseOutputWithStatus.Failed -> _uiState.send(
                                 UIState.Error(
@@ -82,6 +99,70 @@ class CountriesViewModel @Inject constructor(
     fun onSelectedCountry(country: Country) {
         viewModelScope.launch {
             _selectedCountry.send(country)
+        }
+    }
+
+    fun triggerSearch() {
+        viewModelScope.launch {
+            val currentState = uiState.value
+            if (currentState is UIState.Success) {
+                val searchState = currentState.data.searchState.copy(
+                    isActive = !currentState.data.searchState.isActive
+                )
+                _uiState.send(
+                    UIState.Success(
+                        data = currentState.data.copy(
+                            searchState = searchState
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    fun updateSearchQuery(query: String) {
+        viewModelScope.launch {
+            val currentState = uiState.value
+            if (currentState is UIState.Success) {
+                val searchState = currentState.data.searchState.copy(
+                    query = query
+                )
+                val filteredCountries = _countries.filter { countryItem ->
+                    when(countryItem) {
+                        is CountryItem.CountryInfo -> {
+                            val country = countryItem.country
+                            country.name?.contains(query, ignoreCase = true) == true ||
+                                    country.code?.contains(query, ignoreCase = true) == true ||
+                                    country.capital?.contains(query, ignoreCase = true) == true
+                        }
+                        is CountryItem.Letter -> true
+                    }
+                }
+                _uiState.send(
+                    UIState.Success(
+                        data = currentState.data.copy(
+                            countries = filteredCountries,
+                            searchState = searchState
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    fun clearSearchQuery() {
+        viewModelScope.launch {
+            val currentState = uiState.value
+            if (currentState is UIState.Success) {
+                _uiState.send(
+                    UIState.Success(
+                        data = currentState.data.copy(
+                            countries = _countries,
+                            searchState = SearchState()
+                        )
+                    )
+                )
+            }
         }
     }
 }

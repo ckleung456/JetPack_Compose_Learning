@@ -9,6 +9,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.example.core.navigation.model.BottomNavItem
 import com.example.core.navigation.module.Navigator
+import com.example.feature.doordash.R
 import com.example.feature.doordash.model.domain.DoordashRoute
 import com.example.feature.doordash.ui.screen.RestaurantDetailScreen
 import com.example.feature.doordash.ui.screen.RestaurantScreen
@@ -49,6 +50,6 @@ fun doordashRouteTopDestination(): Pair<NavKey, BottomNavItem> = Pair(
     DoordashRoute.Restaurants,
     BottomNavItem(
         icon = Icons.Outlined.Fastfood,
-        title = stringResource(com.example.core.R.string.title_doordash)
+        title = stringResource(R.string.title_doordash)
     )
 )

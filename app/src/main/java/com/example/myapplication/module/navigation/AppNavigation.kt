@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,6 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,6 +32,7 @@ import com.example.core.navigation.module.Navigator
 import com.example.core.navigation.module.rememberNavigationState
 import com.example.core.navigation.module.toEntries
 import com.example.core.ui.AppNavigationBar
+import com.example.core.ui.TopBarStateManager
 import com.example.feature.country.model.domain.CountryRoute
 import com.example.feature.country.module.navigation.CountryNavEntries
 import com.example.feature.country.module.navigation.CountryNavEntriesWithoutBottomBar
@@ -58,55 +63,81 @@ fun AppFeatureNavigation(
     val navigator = remember {
         Navigator(navigationState)
     }
+    val topBarStateManager = remember {
+        TopBarStateManager()
+    }
 
-    Scaffold(
-        modifier = modifier,
-        bottomBar = {
-            AppNavigationBar(
-                selectedKey = CountryRoute.Countries,
-                items = topDestinations,
-                onSelectKey = {
-                    navigator.navigate(it)
-                }
-            )
-        },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.app_name)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navigator.goBack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBackIosNew,
-                            contentDescription = "BACK",
-                            tint = Color.White
-                        )
+    CompositionLocalProvider(
+        TopBarStateManager.LocalTopBarStateManager provides topBarStateManager
+    ) {
+        Scaffold(
+            modifier = modifier,
+            bottomBar = {
+                AppNavigationBar(
+                    selectedKey = CountryRoute.Countries,
+                    items = topDestinations,
+                    onSelectKey = {
+                        navigator.navigate(it)
                     }
+                )
+            },
+            topBar = {
+                val config by topBarStateManager.config.collectAsState()
+
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = config.title.ifBlank { stringResource(R.string.app_name) }
+                        )
+                    },
+                    navigationIcon = {
+                        if (config.navigationIconEnabled) {
+                            IconButton(
+                                onClick = {
+                                    config.onNavigationClick?.invoke() ?: navigator.goBack()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = config.navigationIcon,
+                                    contentDescription = "BACK",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Blue,
+                        titleContentColor = Color.White
+                    ),
+                    actions = {
+                        config.actions.forEach {
+                            IconButton(onClick = it.onClick) {
+                                Icon(
+                                    imageVector = it.icon,
+                                    contentDescription = it.contentDescription,
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+        ) { innerPadding ->
+            NavDisplay(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                onBack = {
+                    navigator.goBack()
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Blue,
-                    titleContentColor = Color.White
+                entries = navigationState.toEntries(
+                    entryProvider {
+                        CountryNavEntries(navigator = navigator)
+                        DoorDashNavEntries(navigator = navigator)
+                    }
                 )
             )
         }
-    ) { innerPadding ->
-        NavDisplay(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            onBack = {
-                navigator.goBack()
-            },
-            entries = navigationState.toEntries(
-                entryProvider {
-                    CountryNavEntries(navigator = navigator)
-                    DoorDashNavEntries(navigator = navigator)
-                }
-            )
-        )
     }
 }
 

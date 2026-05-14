@@ -23,19 +23,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.ErrorView
 import com.example.core.ui.SmartNetworkImage
+import com.example.core.ui.TopBarStateManager
 import com.example.core.ui.UIStatefulContent
 import com.example.core.utils.Utils.ObserveAsEvents
+import com.example.feature.doordash.R
 import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.RestaurantDataModel
 import com.example.feature.doordash.ui.viewmodel.RestaurantListsViewModel
@@ -46,12 +50,21 @@ fun RestaurantScreen(
     viewModel: RestaurantListsViewModel = hiltViewModel(),
     onRestaurantSelected: (Long) -> Unit
 ) {
+    val topBarStateManager = TopBarStateManager.LocalTopBarStateManager.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val title = stringResource(R.string.title_doordash)
     ObserveAsEvents(
         flow = viewModel.selectedRestaurant,
         key1 = "Restaurant"
     ) { restaurantId ->
         onRestaurantSelected.invoke(restaurantId)
+    }
+    LaunchedEffect(Unit) {
+        topBarStateManager.updateConfig(
+            title = title,
+            navigationIconEnabled = false,
+            actions = emptyList()
+        )
     }
 
     UIStatefulContent(
