@@ -1,6 +1,5 @@
 package com.example.core.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,17 +25,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-
-sealed class ImageLoadState {
-    object Loading : ImageLoadState()
-    data class Success(val painter: AsyncImagePainter) : ImageLoadState()
-    data class Error(val exception: Throwable?) : ImageLoadState()
-}
 
 @Composable
 fun SmartNetworkImage(
