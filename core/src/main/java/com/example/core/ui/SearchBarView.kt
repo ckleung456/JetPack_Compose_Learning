@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SearchBar(
+    modifier: Modifier = Modifier.fillMaxWidth(),
     query: String,
     onQueryChange: (String) -> Unit,
     onClearClick: () -> Unit,
@@ -40,8 +41,8 @@ fun SearchBar(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder) },
+        modifier = modifier,
+        placeholder = { SmartAutoSizeText(modifier = Modifier.fillMaxWidth(), placeholder) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
@@ -65,16 +66,18 @@ fun SearchBar(
 
 @Composable
 fun SearchBarWithLoading(
+    modifier: Modifier = Modifier.fillMaxWidth(),
     query: String,
     onQueryChange: (String) -> Unit,
     onClearClick: () -> Unit,
+    placeholder: String,
     isLoading: Boolean
 ) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search by name, category, or description...") },
+        modifier = modifier,
+        placeholder = { SmartAutoSizeText(modifier = Modifier.fillMaxWidth(), placeholder) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
