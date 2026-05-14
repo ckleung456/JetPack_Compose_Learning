@@ -3,4 +3,6 @@
     <string name="title_countries">Countries</string>
     <string name="title_country_detail">Country Detail</string>
     <string name="title_doordash">Doordash</string>
+
+    <string name="error_title_fail_to_load_image">Failed to load image</string>
 </resources>

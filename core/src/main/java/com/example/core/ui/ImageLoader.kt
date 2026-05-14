@@ -1,5 +1,6 @@
 package com.example.core.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,24 +24,54 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.example.core.R
+
+private const val ERROR = "Error"
 
 @Composable
 fun SmartNetworkImage(
     url: String?,
     contentDescription: String? = null,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     placeholderColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     errorColor: Color = MaterialTheme.colorScheme.errorContainer,
     showLoadingIndicator: Boolean = true,
     showErrorIndicator: Boolean = true,
-    cacheEnabled: Boolean = true
+    cacheEnabled: Boolean = true,
+    errorView: @Composable () -> Unit = {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(errorColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.BrokenImage,
+                    contentDescription = ERROR,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.error_title_fail_to_load_image),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
 ) {
     val context = LocalContext.current
 
@@ -78,30 +109,7 @@ fun SmartNetworkImage(
         },
         error = {
             if (showErrorIndicator) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(errorColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.BrokenImage,
-                            contentDescription = "Error",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Failed to load image",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
+                errorView.invoke()
             }
         }
     )
@@ -112,30 +120,19 @@ fun SmartNetworkImage(
 fun CircularNetworkImage(
     url: String,
     contentDescription: String? = null,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     size: Dp = 64.dp
 ) {
-    SubcomposeAsyncImage(
-        model = url,
+    SmartNetworkImage(
+        url = url,
         contentDescription = contentDescription,
         modifier = modifier
             .size(size)
             .clip(CircleShape),
         contentScale = ContentScale.Crop,
-        loading = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        },
-        error = {
+        showLoadingIndicator = true,
+        showErrorIndicator = true,
+        errorView = {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -144,7 +141,7 @@ fun CircularNetworkImage(
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Error",
+                    contentDescription = ERROR,
                     tint = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
