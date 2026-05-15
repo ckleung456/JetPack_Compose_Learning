@@ -11,6 +11,7 @@ import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.model.domain.SearchState
 import com.example.feature.country.usecase.GetCountriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -46,7 +47,7 @@ class CountriesViewModel @Inject constructor(
                     _uiState.send(
                         UIState.Success(
                             data = CountriesUIState(
-                                countries = _countries,
+                                countries = _countries.toPersistentList(),
                                 searchState = SearchState()
                             )
                         )
@@ -77,7 +78,7 @@ class CountriesViewModel @Inject constructor(
                                 _uiState.send(
                                     UIState.Success(
                                         data = CountriesUIState(
-                                            countries = state.result,
+                                            countries = state.result.toPersistentList(),
                                             searchState = SearchState()
                                         )
                                     )
@@ -137,7 +138,7 @@ class CountriesViewModel @Inject constructor(
                         }
                         is CountryItem.Letter -> true
                     }
-                }
+                }.toPersistentList()
                 _uiState.send(
                     UIState.Success(
                         data = currentState.data.copy(
@@ -157,7 +158,7 @@ class CountriesViewModel @Inject constructor(
                 _uiState.send(
                     UIState.Success(
                         data = currentState.data.copy(
-                            countries = _countries,
+                            countries = _countries.toPersistentList(),
                             searchState = SearchState()
                         )
                     )

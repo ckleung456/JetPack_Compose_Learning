@@ -3,9 +3,7 @@ package com.example.feature.country.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -146,13 +144,17 @@ private fun CountriesListView(
                     title = countryItem.letter
                 )
                 is CountryItem.CountryInfo -> {
-                    val country = remember { countryItem.country }
+                    val country = remember(countryItem) { countryItem.country }
+                    val onCountryClick = remember(countryItem) {
+                        {
+                            onSelectedCountry.invoke(country)
+                        }
+                    }
                     EnhancedListItem(
                         title = country.name.orEmpty(),
-                        description = country.code
-                    ) {
-                        onSelectedCountry.invoke(country)
-                    }
+                        description = country.code,
+                        onClick = onCountryClick
+                    )
                 }
             }
         }

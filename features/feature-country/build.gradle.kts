@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons)
+    implementation(libs.kotlinx.imutable)
 
     // nav 3
     implementation(libs.androidx.navigation3.ui)
@@ -67,6 +68,7 @@ dependencies {
 
     // dagger
     implementation(libs.hilt.android)
+    implementation(libs.androidx.compose.runtime)
     ksp(libs.hilt.compiler)
 
     // retrofit

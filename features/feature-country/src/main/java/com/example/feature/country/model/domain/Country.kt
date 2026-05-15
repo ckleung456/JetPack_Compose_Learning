@@ -1,8 +1,10 @@
 package com.example.feature.country.model.domain
 
 import android.os.Parcelable
+import androidx.compose.runtime.Immutable
 import kotlinx.parcelize.Parcelize
 
+@Immutable
 @Parcelize
 data class Country(
     val capital: String?,
@@ -14,6 +16,7 @@ data class Country(
     val region: String?
 ) : Parcelable
 
+@Immutable
 @Parcelize
 data class CountryCurrency(
     val code: String?,
@@ -21,6 +24,7 @@ data class CountryCurrency(
     val symbol: String?
 ) : Parcelable
 
+@Immutable
 @Parcelize
 data class CountryLanguage(
     val code: String?,
