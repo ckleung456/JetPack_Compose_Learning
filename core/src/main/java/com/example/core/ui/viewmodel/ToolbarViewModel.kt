@@ -1,19 +1,18 @@
-package com.example.core.ui
+package com.example.core.ui.viewmodel
 
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.ViewModel
 import com.example.core.ui.model.TopBarAction
 import com.example.core.ui.model.TopBarConfig
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
-class TopBarStateManager {
-    companion object {
-        val LocalTopBarStateManager = compositionLocalOf { TopBarStateManager() }
-    }
-
+@HiltViewModel
+class ToolbarViewModel @Inject constructor() : ViewModel() {
     private val _config = MutableStateFlow(
         TopBarConfig()
     )

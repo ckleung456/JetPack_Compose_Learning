@@ -8,27 +8,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.FullScreenCenteredContent
-import com.example.core.ui.TopBarStateManager
+import com.example.core.ui.viewmodel.ToolbarViewModel
 import com.example.feature.country.R
 import com.example.feature.country.ui.viewmodel.CountryDetailViewModel
 import kotlin.text.orEmpty
 
 @Composable
 fun CountryDetailScreen(
+    modifier: Modifier = Modifier,
+    toolbarViewModel: ToolbarViewModel? = null,
     viewModel: CountryDetailViewModel
 ) {
-    val topBarStateManager = TopBarStateManager.LocalTopBarStateManager.current
     val title = stringResource(R.string.title_country_detail)
     val country by viewModel.detail.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) {
-        topBarStateManager.updateConfig(
-            title = title,
-            navigationIconEnabled = true
-        )
+    toolbarViewModel?.let {
+        LaunchedEffect(Unit) {
+            toolbarViewModel.updateConfig(
+                title = title,
+                navigationIconEnabled = true
+            )
+        }
     }
 
     FullScreenCenteredContent(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         imageUrl = country?.flag.orEmpty(),
         title = country?.name.orEmpty(),
         descriptions = listOf(

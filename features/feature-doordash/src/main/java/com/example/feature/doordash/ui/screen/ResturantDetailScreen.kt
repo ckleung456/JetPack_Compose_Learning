@@ -8,24 +8,26 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.ErrorView
 import com.example.core.ui.FullScreenCenteredContent
-import com.example.core.ui.TopBarStateManager
 import com.example.core.ui.UIStatefulContent
+import com.example.core.ui.viewmodel.ToolbarViewModel
 import com.example.feature.doordash.ui.viewmodel.RestaurantDetailViewModel
 import kotlin.text.orEmpty
 
 @Composable
 fun RestaurantDetailScreen(
     modifier: Modifier = Modifier.fillMaxSize(),
+    toolbarViewModel: ToolbarViewModel? = null,
     viewModel: RestaurantDetailViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val topBarStateManager = TopBarStateManager.LocalTopBarStateManager.current
     val title = "Restaurant Detail"
-    LaunchedEffect(Unit) {
-        topBarStateManager.updateConfig(
-            title = title,
-            navigationIconEnabled = true
-        )
+    toolbarViewModel?.let {
+        LaunchedEffect(Unit) {
+            toolbarViewModel.updateConfig(
+                title = title,
+                navigationIconEnabled = true
+            )
+        }
     }
 
     UIStatefulContent(

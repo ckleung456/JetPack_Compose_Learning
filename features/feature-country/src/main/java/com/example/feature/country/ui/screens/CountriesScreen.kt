@@ -25,9 +25,9 @@ import com.example.core.ui.EnhancedListItem
 import com.example.core.ui.ErrorView
 import com.example.core.ui.HeaderItem
 import com.example.core.ui.SearchBar
-import com.example.core.ui.TopBarStateManager
 import com.example.core.ui.UIStatefulContent
 import com.example.core.ui.model.TopBarAction
+import com.example.core.ui.viewmodel.ToolbarViewModel
 import com.example.core.utils.Utils.ObserveAsEvents
 import com.example.feature.country.R
 import com.example.feature.country.model.domain.Country
@@ -37,36 +37,38 @@ import com.example.feature.country.ui.viewmodel.CountriesViewModel
 @Composable
 fun CountriesScreen(
     modifier: Modifier = Modifier,
+    toolbarViewModel: ToolbarViewModel? = null,
     viewModel: CountriesViewModel = hiltViewModel(),
     onSelectedCountry: (Country) -> Unit
 ) {
-    val topBarStateManager = TopBarStateManager.LocalTopBarStateManager.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var isRefreshing by remember { mutableStateOf(false) }
     val title = stringResource(R.string.title_countries)
-    ObserveAsEvents(
-        flow = viewModel.selectedCountry,
-        key1 = "Country"
-    ) { country ->
-        country?.let {
-            onSelectedCountry.invoke(it)
+    toolbarViewModel?.let {
+        ObserveAsEvents(
+            flow = viewModel.selectedCountry,
+            key1 = "Country"
+        ) { country ->
+            country?.let {
+                onSelectedCountry.invoke(it)
+            }
+            toolbarViewModel.resetToDefault(title = title)
         }
-        topBarStateManager.resetToDefault(title = title)
-    }
-    LaunchedEffect(Unit) {
-        topBarStateManager.updateConfig(
-            title = title,
-            navigationIconEnabled = false,
-            actions = listOf(
-                TopBarAction(
-                    icon = Icons.Default.Search,
-                    contentDescription = "Search",
-                    onClick = {
-                        viewModel.triggerSearch()
-                    }
+        LaunchedEffect(Unit) {
+            toolbarViewModel.updateConfig(
+                title = title,
+                navigationIconEnabled = false,
+                actions = listOf(
+                    TopBarAction(
+                        icon = Icons.Default.Search,
+                        contentDescription = "Search",
+                        onClick = {
+                            viewModel.triggerSearch()
+                        }
+                    )
                 )
             )
-        )
+        }
     }
 
     UIStatefulContent(

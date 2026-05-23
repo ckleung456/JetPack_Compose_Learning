@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.example.core.navigation.model.BottomNavItem
 import com.example.core.navigation.module.Navigator
+import com.example.core.ui.viewmodel.ToolbarViewModel
 import com.example.feature.country.R
 import com.example.feature.country.model.domain.Country
 import com.example.feature.country.model.domain.CountryRoute
@@ -21,10 +22,11 @@ private const val COUNTRY_DETAIL_KEY = "countryDetailKey"
 
 @Composable
 fun EntryProviderScope<NavKey>.CountryNavEntries(
-    navigator: Navigator
+    navigator: Navigator,
+    toolbarViewModel: ToolbarViewModel
 ) {
     entry<CountryRoute.Countries> {
-        CountriesScreen {
+        CountriesScreen(toolbarViewModel = toolbarViewModel) {
             navigator.navigate(
                 CountryRoute.CountryDetail(
                     detailArgument = mapOf(
@@ -36,6 +38,7 @@ fun EntryProviderScope<NavKey>.CountryNavEntries(
     }
     entry<CountryRoute.CountryDetail> {
         CountryDetailScreen(
+            toolbarViewModel = toolbarViewModel,
             viewModel = hiltViewModel<CountryDetailViewModel, CountryDetailViewModel.Factory> { factory ->
                 val country = it.detailArgument.getValue(COUNTRY_DETAIL_KEY) as? Country
                 factory.create(
