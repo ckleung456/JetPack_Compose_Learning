@@ -2,11 +2,12 @@ package com.example.feature.country.model.domain
 
 import android.os.Parcelable
 import androidx.compose.runtime.Immutable
+import com.example.feature.country.utils.countryCodeToFlagEmoji
 import kotlinx.parcelize.Parcelize
 
 @Immutable
 @Parcelize
-data class Country(
+data class CountryUi(
     val capital: String?,
     val code: String?,
     val currency: CountryCurrency?,
@@ -16,7 +17,29 @@ data class Country(
     val region: String?
 ) : Parcelable
 
-@Immutable
+@Parcelize
+data class Country(
+    val capital: String?,
+    val code: String?,
+    val currency: CountryCurrency?,
+    val flag: String?,
+    val language: CountryLanguage,
+    val name: String?,
+    val region: String?
+) : Parcelable{
+    fun toUi() = CountryUi(
+        capital = capital,
+        code = code,
+        currency = currency,
+        flag = countryCodeToFlagEmoji(code),
+        language = language,
+        name = name,
+        region = region
+    )
+
+
+}
+
 @Parcelize
 data class CountryCurrency(
     val code: String?,
@@ -24,7 +47,6 @@ data class CountryCurrency(
     val symbol: String?
 ) : Parcelable
 
-@Immutable
 @Parcelize
 data class CountryLanguage(
     val code: String?,
@@ -41,7 +63,7 @@ sealed class CountryItem(
 
     @Parcelize
     data class CountryInfo(
-        val country: Country
+        val country: CountryUi
     ) : CountryItem(type = CountryItemViewType.COUNTRY)
 }
 

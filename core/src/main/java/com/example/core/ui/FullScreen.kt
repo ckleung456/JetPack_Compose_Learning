@@ -1,19 +1,19 @@
 package com.example.core.ui
 
+import android.webkit.URLUtil
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.core.ui.model.ImageItemType
 import com.example.core.ui.model.ImageListItem
 
@@ -55,16 +56,27 @@ fun FullScreenCenteredContent(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(24.dp)
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
         ) {
             // Icon
             if (imageUrl.isNullOrBlank().not()) {
-                ImageItemView(
-                    item = ImageListItem(
-                        imageUrl = imageUrl,
-                        type = ImageItemType.LARGE
+                if (URLUtil.isHttpUrl(imageUrl) || URLUtil.isHttpsUrl(imageUrl)) {
+                    ImageItemView(
+                        item = ImageListItem(
+                            imageUrl = imageUrl,
+                            type = ImageItemType.LARGE
+                        )
                     )
-                )
+                } else {
+                    Text(
+                        text = imageUrl,
+                        fontSize = 64.sp,
+                        modifier = Modifier.fillMaxSize(),
+                        textAlign = TextAlign.Center
+                    )
+                }
             } else if (icon != null) {
                 Icon(
                     imageVector = icon,
@@ -107,18 +119,11 @@ fun FullScreenCenteredContent(
             }
 
             if (descriptions.isNullOrEmpty().not()) {
-                descriptions.filter { it.isNotBlank() }.let {
-                    LazyColumn(
-                        modifier = modifier,
-                        contentPadding = PaddingValues(16.dp)
-                    ) {
-                        items(descriptions) {
-                            SimpleListRowItem(
-                                title = it,
-                                hasArrowIcon = false
-                            )
-                        }
-                    }
+                descriptions.filter { it.isNotBlank() }.forEach {
+                    SimpleListRowItem(
+                        title = it,
+                        hasArrowIcon = false
+                    )
                 }
             }
         }

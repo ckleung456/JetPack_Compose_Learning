@@ -2,7 +2,7 @@ package com.example.feature.country.ui.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.example.feature.country.model.domain.Country
+import com.example.feature.country.model.domain.CountryUi
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 @HiltViewModel(assistedFactory = CountryDetailViewModel.Factory::class)
 class CountryDetailViewModel @AssistedInject constructor(
     savedStateHandle: SavedStateHandle,
-    @Assisted val country: Country?
+    @Assisted val country: CountryUi?
 ) : ViewModel()  {
     companion object {
         private const val TAG = "CountryDetailViewModel"
@@ -21,10 +21,10 @@ class CountryDetailViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(country: Country?) : CountryDetailViewModel
+        fun create(country: CountryUi?) : CountryDetailViewModel
     }
 
-    val detail: StateFlow<Country?> = savedStateHandle.getMutableStateFlow(
+    val detail: StateFlow<CountryUi?> = savedStateHandle.getMutableStateFlow(
         ARGUMENT_COUNTRY,
         null
     )

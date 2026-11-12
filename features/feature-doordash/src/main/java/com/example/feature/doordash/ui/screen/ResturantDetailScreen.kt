@@ -1,61 +1,69 @@
 package com.example.feature.doordash.ui.screen
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.core.ui.AppTopBar
 import com.example.core.ui.ErrorView
 import com.example.core.ui.FullScreenCenteredContent
 import com.example.core.ui.UIStatefulContent
-import com.example.core.ui.viewmodel.ToolbarViewModel
+import com.example.feature.doordash.R
 import com.example.feature.doordash.ui.viewmodel.RestaurantDetailViewModel
 import kotlin.text.orEmpty
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantDetailScreen(
     modifier: Modifier = Modifier.fillMaxSize(),
-    toolbarViewModel: ToolbarViewModel? = null,
+    onBackClick: () -> Unit,
     viewModel: RestaurantDetailViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val title = "Restaurant Detail"
-    toolbarViewModel?.let {
-        LaunchedEffect(Unit) {
-            toolbarViewModel.updateConfig(
+    val title = stringResource(R.string.title_restaurant_detail)
+
+    Scaffold(
+        topBar = {
+            AppTopBar(
                 title = title,
-                navigationIconEnabled = true
+                onBackClick = onBackClick
+            )
+        }
+    ) { innerPadding ->
+        Box(modifier = modifier.padding(innerPadding)) {
+            UIStatefulContent(
+                state = uiState,
+                successContent = { restaurantInfo ->
+                    val restaurantDetail = restaurantInfo.first
+                    val likedStatus = restaurantInfo.second
+                    FullScreenCenteredContent(
+                        imageUrl = restaurantDetail.coverImgUrl.orEmpty(),
+                        title = restaurantDetail.name.orEmpty(),
+                        descriptions = listOf(
+                            "Phone number : ${restaurantDetail.phoneNumber}",
+                            "Delivery fee : ${restaurantDetail.deliveryFee}",
+                            "Average rating : ${restaurantDetail.averageRating}",
+                            "Status type : ${restaurantDetail.statusType}",
+                            "Status : ${restaurantDetail.status}",
+                            "Yelp rating : ${restaurantDetail.yelpRating}",
+                            "Liked status : $likedStatus"
+                        )
+                    )
+                },
+                errorContent = { message, _ ->
+                    ErrorView(
+                        message = message
+                    ) {
+                        viewModel.fetchRestaurantDetail()
+                    }
+                }
             )
         }
     }
-
-    UIStatefulContent(
-        state = uiState,
-        successContent = { restaurantInfo ->
-            val restaurantDetail = restaurantInfo.first
-            val likedStatus = restaurantInfo.second
-            FullScreenCenteredContent(
-                modifier = modifier,
-                imageUrl = restaurantDetail.coverImgUrl.orEmpty(),
-                title = restaurantDetail.name.orEmpty(),
-                descriptions = listOf(
-                    "Phone number : ${restaurantDetail.phoneNumber}",
-                    "Delivery fee : ${restaurantDetail.deliveryFee}",
-                    "Average rating : ${restaurantDetail.averageRating}",
-                    "Status type : ${restaurantDetail.statusType}",
-                    "Status : ${restaurantDetail.status}",
-                    "Yelp rating : ${restaurantDetail.yelpRating}",
-                    "Liked status : $likedStatus"
-                )
-            )
-        },
-        errorContent = { message, _ ->
-            ErrorView(
-                message = message
-            ) {
-                viewModel.fetchRestaurantDetail()
-            }
-        }
-    )
 }

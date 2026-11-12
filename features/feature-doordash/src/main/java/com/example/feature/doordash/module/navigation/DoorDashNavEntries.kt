@@ -9,7 +9,6 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.example.core.navigation.model.BottomNavItem
 import com.example.core.navigation.module.Navigator
-import com.example.core.ui.viewmodel.ToolbarViewModel
 import com.example.feature.doordash.R
 import com.example.feature.doordash.model.domain.DoordashRoute
 import com.example.feature.doordash.ui.screen.RestaurantDetailScreen
@@ -19,11 +18,10 @@ import com.example.feature.doordash.ui.viewmodel.RestaurantDetailViewModel
 
 @Composable
 fun EntryProviderScope<NavKey>.DoorDashNavEntries(
-    navigator: Navigator,
-    toolbarViewModel: ToolbarViewModel
+    navigator: Navigator
 ) {
     entry<DoordashRoute.Restaurants> {
-        RestaurantScreen(toolbarViewModel = toolbarViewModel) {
+        RestaurantScreen {
             navigator.navigate(
                 DoordashRoute.RestaurantDetail(
                     restaurantId = it
@@ -33,7 +31,7 @@ fun EntryProviderScope<NavKey>.DoorDashNavEntries(
     }
     entry<DoordashRoute.RestaurantDetail> {
         RestaurantDetailScreen(
-            toolbarViewModel = toolbarViewModel,
+            onBackClick = { navigator.goBack() },
             viewModel = hiltViewModel<RestaurantDetailViewModel, RestaurantDetailViewModel.Factory> { factory ->
                 factory.create(
                     restaurantId = it.restaurantId

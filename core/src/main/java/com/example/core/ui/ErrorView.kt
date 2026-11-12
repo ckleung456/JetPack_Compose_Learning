@@ -19,10 +19,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ErrorView(
     message: String,
+    modifier: Modifier = Modifier,
     onRetry: () -> Unit = {}
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

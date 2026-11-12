@@ -24,7 +24,7 @@ class GetCountriesUseCase @Inject constructor(
             result = grouped.filter { it.key != null }.flatMap { (letter, countryList) ->
                 listOf(
                     CountryItem.Letter(letter = letter.toString())
-                ) + countryList.map { CountryItem.CountryInfo(country = it) }
+                ) + countryList.map { CountryItem.CountryInfo(country = it.toUi()) }
             }
         )
     }
