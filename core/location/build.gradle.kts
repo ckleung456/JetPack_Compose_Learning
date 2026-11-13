@@ -29,7 +29,6 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:shared-lib"))
-    implementation(libs.androidx.core.ktx)
 
     // dagger
     implementation(libs.hilt.android)

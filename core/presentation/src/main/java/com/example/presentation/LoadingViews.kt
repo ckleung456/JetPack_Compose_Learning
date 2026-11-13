@@ -1,5 +1,6 @@
 package com.example.presentation
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -60,7 +61,7 @@ fun LoadingWithText(
 @Composable
 fun TopLoadingBar(
     isVisible: Boolean = true,
-    modifier: Modifier = Modifier
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
     if (isVisible) {
         LinearProgressIndicator(

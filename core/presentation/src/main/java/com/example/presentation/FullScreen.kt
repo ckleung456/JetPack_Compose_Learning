@@ -35,6 +35,7 @@ import com.example.presentation.model.ImageListItem
 
 @Composable
 fun FullScreenCenteredContent(
+    modifier: Modifier = Modifier,
     imageUrl: String? = null,
     icon: ImageVector? = null,
     iconResId: Int? = null,
@@ -45,7 +46,6 @@ fun FullScreenCenteredContent(
     iconColor: Color = MaterialTheme.colorScheme.primary,
     titleColor: Color = MaterialTheme.colorScheme.onBackground,
     descriptionColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
@@ -132,6 +132,7 @@ fun FullScreenCenteredContent(
 
 @Composable
 fun FullScreenContentWithActions(
+    modifier: Modifier = Modifier,
     icon: ImageVector,
     title: String,
     description: String,
@@ -139,7 +140,6 @@ fun FullScreenContentWithActions(
     secondaryButtonText: String? = null,
     onPrimaryClick: () -> Unit = {},
     onSecondaryClick: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -154,10 +154,10 @@ fun FullScreenContentWithActions(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(150.dp)
+            modifier = modifier.size(150.dp)
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = modifier.height(40.dp))
 
         // Title
         Text(
@@ -167,7 +167,7 @@ fun FullScreenContentWithActions(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = modifier.height(16.dp))
 
         // Description
         Text(
@@ -175,21 +175,21 @@ fun FullScreenContentWithActions(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(0.9f)
+            modifier = modifier.fillMaxWidth(0.9f)
         )
 
         // Buttons at the bottom
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = modifier.weight(1f))
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (primaryButtonText != null) {
                 Button(
                     onClick = onPrimaryClick,
-                    modifier = Modifier.fillMaxWidth(0.8f),
+                    modifier = modifier.fillMaxWidth(0.8f),
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Text(
@@ -202,7 +202,7 @@ fun FullScreenContentWithActions(
             if (secondaryButtonText != null) {
                 TextButton(
                     onClick = onSecondaryClick,
-                    modifier = Modifier.fillMaxWidth(0.8f)
+                    modifier = modifier.fillMaxWidth(0.8f)
                 ) {
                     Text(
                         text = secondaryButtonText,

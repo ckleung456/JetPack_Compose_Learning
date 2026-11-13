@@ -42,13 +42,14 @@ import com.example.presentation.model.ImageListItem
 
 @Composable
 fun EnhancedListItem(
+    modifier: Modifier = Modifier,
     title: String,
     description: String? = null,
     hasArrowIcon: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
@@ -57,7 +58,7 @@ fun EnhancedListItem(
         onClick = onClick
     ) {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -210,13 +211,14 @@ fun ImageItemView(
 
 @Composable
 fun ImageListItem(
+    modifier: Modifier = Modifier,
     imageUrl: String,
     title: String,
     subtitle: String? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         onClick = onClick,
@@ -224,7 +226,7 @@ fun ImageListItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -233,16 +235,16 @@ fun ImageListItem(
             SmartNetworkImage(
                 url = imageUrl,
                 contentDescription = title,
-                modifier = Modifier
+                modifier = modifier
                     .size(60.dp)
                     .clip(RoundedCornerShape(8.dp))
             )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = modifier.width(16.dp))
 
             // Text content
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = modifier.weight(1f)
             ) {
                 Text(
                     text = title,
@@ -276,6 +278,7 @@ fun ImageListItem(
 
 @Composable
 fun ImageItemWithBadge(
+    modifier: Modifier = Modifier,
     imageUrl: String,
     title: String,
     badgeText: String? = null,
@@ -283,23 +286,23 @@ fun ImageItemWithBadge(
     onClick: () -> Unit = {}
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Image with badge overlay
             Box(
-                modifier = Modifier.size(80.dp)
+                modifier = modifier.size(80.dp)
             ) {
                 SmartNetworkImage(
                     url = imageUrl,
                     contentDescription = title,
-                    modifier = Modifier
+                    modifier = modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(12.dp))
                 )
@@ -308,7 +311,7 @@ fun ImageItemWithBadge(
                 if (badgeText.isNullOrBlank().not()) {
                     Badge(
                         containerColor = badgeColor,
-                        modifier = Modifier
+                        modifier = modifier
                             .align(Alignment.TopEnd)
                             .offset(x = 8.dp, y = (-8).dp)
                     ) {
@@ -321,11 +324,11 @@ fun ImageItemWithBadge(
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = modifier.width(16.dp))
 
             // Text content
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = modifier.weight(1f)
             ) {
                 Text(
                     text = title,
@@ -351,6 +354,7 @@ fun ImageItemWithBadge(
 
 @Composable
 fun HeroImageItem(
+    modifier: Modifier = Modifier,
     imageUrl: String,
     title: String,
     description: String? = null,
@@ -360,7 +364,7 @@ fun HeroImageItem(
     onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .height(200.dp),
@@ -368,17 +372,17 @@ fun HeroImageItem(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = modifier.fillMaxSize()) {
             // Background image
             SmartNetworkImage(
                 url = imageUrl,
                 contentDescription = title,
-                modifier = Modifier.fillMaxSize(),
+                modifier = modifier.fillMaxSize(),
             )
 
             // Gradient overlay at bottom
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
                     .background(
                         brush = Brush.verticalGradient(
@@ -393,7 +397,7 @@ fun HeroImageItem(
 
             // Content overlay
             Column(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.Bottom
