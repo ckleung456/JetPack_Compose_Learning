@@ -132,8 +132,8 @@ The app declares `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_COARSE_LOCATION`, a
 | UI | Jetpack Compose (BOM) + Material 3 | 2025.12.01 |
 | Navigation | Navigation 3 | 1.0.0 |
 | DI | Hilt | 2.57.2 |
-| Persistence | Room | 2.6.1 |
-| Networking | Retrofit / OkHttp | 3.0.0 / 4.10.0 |
+| Persistence | Room | 2.7.2 |
+| Networking | Retrofit / OkHttp | 3.0.0 / 4.12.0 |
 | Images | Coil | 3.4.0 |
 | Async | Kotlin Coroutines (+ Play Services) | 1.11.0 |
 | Location | Play Services Location | 21.4.0 |
