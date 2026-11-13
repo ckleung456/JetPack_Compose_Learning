@@ -2,6 +2,33 @@
 
 A native Android app built with Jetpack Compose, showcasing a multi-module architecture with three independent features: a **Country browser**, a **DoorDash-style restaurant list**, and a **Yelp-backed "Pizza & Beer" business search** with device-location support. It's structured as a playground for modern Android patterns — Navigation 3, Hilt, Room, Retrofit/Flow, Play Services location, and a layered set of shared core modules.
 
+## Screenshots
+
+Captured from the debug build on an Android 15 emulator (1080×1920, dark theme) using live API data.
+
+### Countries
+
+| Country list | Search | Country detail |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/countries.png" width="240" alt="Alphabetical list of countries with letter headers"> | <img src="docs/screenshots/countries-search.png" width="240" alt="Searching countries for 'can'"> | <img src="docs/screenshots/country-detail.png" width="240" alt="Canada detail with flag, capital, language and currency"> |
+| A–Z sections; tap the search icon to filter | Matches name, code or capital (debounced) | Flag emoji, code, capital, region, language, currency |
+
+### Business (Yelp "Pizza & Beer")
+
+| Pizza & beer list | Beer filter | Change location | Business detail |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/business.png" width="200" alt="Nearby pizza places with photos, ratings, price and distance"> | <img src="docs/screenshots/business-filter-beer.png" width="200" alt="List filtered to beer places"> | <img src="docs/screenshots/business-address-dialog.png" width="200" alt="Dialog to enter an address or use the current location"> | <img src="docs/screenshots/business-detail.png" width="200" alt="Business detail with photo, rating, categories and weekly hours"> |
+| Sections by category, search by name, All/Pizza/Beer chips | Category filter | Type an address or use device location | Rating, categories, claimed/closed, open now, weekly hours |
+
+### DoorDash
+
+| Restaurant list |
+| :---: |
+| <img src="docs/screenshots/doordash.png" width="240" alt="DoorDash tab showing the error view with a Try Again button"> |
+| The configured `DOORDASH_SERVER_ENDPOINT` currently returns **HTTP 404**, so this shows the shared error view with **Try Again**. The list and detail screens render once the endpoint responds. |
+
+To refresh these, install the debug build (`./gradlew :app:installDebug`), open each page, and capture it with `adb exec-out screencap -p > docs/screenshots/<name>.png`.
+
 ## Modules
 
 ```
