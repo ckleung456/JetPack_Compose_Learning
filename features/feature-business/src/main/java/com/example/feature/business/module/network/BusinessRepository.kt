@@ -11,37 +11,34 @@ import com.example.feature.business.model.network.BusinessDto
 import com.example.feature.business.model.network.HoursDto
 import com.example.feature.business.model.network.OpenDto
 import com.example.feature.business.model.network.SpecialHourDto
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 interface BusinessRepository {
-    suspend fun getPizza(location: String): Flow<List<Business>>
-    suspend fun getBeer(location: String): Flow<List<Business>>
+    fun getPizza(location: String): Flow<List<Business>>
+    fun getBeer(location: String): Flow<List<Business>>
 
-    suspend fun getBusinessDetail(id: String): Flow<BusinessDetail>
+    fun getBusinessDetail(id: String): Flow<BusinessDetail>
 }
 
 class BusinessRepositoryImp @Inject constructor(
     private val api: BusinessApi
 ): BusinessRepository {
-    override suspend fun getBeer(location: String): Flow<List<Business>> = search(
+    override fun getBeer(location: String): Flow<List<Business>> = search(
         term = BusinessCategory.BEER.searchTerm,
         location = location
     )
 
-    override suspend fun getPizza(location: String): Flow<List<Business>> = search(
+    override fun getPizza(location: String): Flow<List<Business>> = search(
         term = BusinessCategory.PIZZA.searchTerm,
         location = location
     )
 
-    override suspend fun getBusinessDetail(id: String): Flow<BusinessDetail> = withContext(Dispatchers.IO) {
+    override fun getBusinessDetail(id: String): Flow<BusinessDetail> =
         api.getBusinessDetail(id = id).map { it.toBusinessDetail() }
-    }
 
-    private suspend fun search(term: String, location: String) = withContext(Dispatchers.IO) {
+    private fun search(term: String, location: String): Flow<List<Business>> =
         api.searchBusinesses(
             term = term,
             location = location
@@ -50,7 +47,6 @@ class BusinessRepositoryImp @Inject constructor(
                 it.toBusiness()
             }
         }
-    }
 
     private fun BusinessDto.toBusiness() = Business(
         id = id,

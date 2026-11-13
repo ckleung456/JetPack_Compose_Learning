@@ -13,7 +13,6 @@ import com.example.feature.doordash.model.domain.usecase.LikeRestaurantUseCaseIn
 import com.example.feature.doordash.usecase.GetNearByRestaurantsUseCase
 import com.example.feature.doordash.usecase.LikeRestaurantUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,10 +35,16 @@ class RestaurantListsViewModel @Inject constructor(
         private const val DOOR_DASH_LNG = -122.139956F
     }
 
+    private var hasLoaded = false
+
     private val _uiState = MutableStateFlow<UIState<List<Pair<RestaurantDataModel, LikedStatus>>>>(UIState.Loading)
     val uiState = _uiState
         .onStart {
-            getRestaurants()
+            // onStart runs on every (re)subscription; only fetch the first time.
+            if (!hasLoaded) {
+                hasLoaded = true
+                getRestaurants()
+            }
         }
         .stateIn(
             scope = viewModelScope,
@@ -63,15 +68,13 @@ class RestaurantListsViewModel @Inject constructor(
                     lng = lng
                 )
             ).collect { state ->
-                launch(Dispatchers.Main) {
-                    when (state) {
-                        is UseCaseOutputWithStatus.Progress -> _uiState.update { UIState.Loading }
-                        is UseCaseOutputWithStatus.Success -> _uiState.update {
-                            UIState.Success(data = state.result)
-                        }
-                        is UseCaseOutputWithStatus.Failed -> _uiState.update {
-                            state.error.toUiError()
-                        }
+                when (state) {
+                    is UseCaseOutputWithStatus.Progress -> _uiState.update { UIState.Loading }
+                    is UseCaseOutputWithStatus.Success -> _uiState.update {
+                        UIState.Success(data = state.result)
+                    }
+                    is UseCaseOutputWithStatus.Failed -> _uiState.update {
+                        state.error.toUiError()
                     }
                 }
             }

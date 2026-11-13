@@ -6,7 +6,7 @@ import javax.inject.Inject
 class DoordashDbRepository @Inject constructor(
     private val likedDao: LikedDao
 ) {
-    suspend fun getAllLikedStatus() = likedDao.getAll()
+    fun getAllLikedStatus() = likedDao.getAll()
 
     suspend fun getLikedStatusById(restaurantId: Long?) : LikedStatus? {
         return restaurantId?.let {
@@ -23,9 +23,5 @@ class DoordashDbRepository @Inject constructor(
         )
     }
 
-    suspend fun clearDb() {
-        getAllLikedStatus().collect {
-            likedDao.deleteAll(items = it)
-        }
-    }
+    suspend fun clearDb() = likedDao.clearAll()
 }

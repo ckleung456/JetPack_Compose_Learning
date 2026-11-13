@@ -42,15 +42,18 @@ class FakeLikedDao : LikedDao {
     val all: List<LikedDb> get() = rows.value.values.toList()
 
     override fun getAll(): Flow<List<LikedDb>> = rows.map { it.values.toList() }
-    override fun getById(id: Long): LikedDb? = rows.value[id]
-    override fun insert(likedDb: LikedDb) {
+    override suspend fun getById(id: Long): LikedDb? = rows.value[id]
+    override suspend fun insert(likedDb: LikedDb) {
         rows.value = rows.value + (likedDb.id to likedDb)
     }
-    override fun deleteAll(items: List<LikedDb>): Int {
+    override suspend fun deleteAll(items: List<LikedDb>): Int {
         val ids = items.map { it.id }.toSet()
         val before = rows.value.size
         rows.value = rows.value.filterKeys { it !in ids }
         return before - rows.value.size
+    }
+    override suspend fun clearAll() {
+        rows.value = emptyMap()
     }
 }
 

@@ -3,8 +3,6 @@ package com.example.feature.doordash.module.domain
 import com.example.feature.doordash.FakeLikedDao
 import com.example.feature.doordash.model.domain.LikedStatus
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -38,9 +36,7 @@ class DoordashDbRepositoryTest {
         repository.saveLikedStatus(restaurantId = 1, likedStatus = LikedStatus.LIKED)
         repository.saveLikedStatus(restaurantId = 2, likedStatus = LikedStatus.UN_LIKED)
 
-        // clearDb keeps observing the table, so run it in a child job and cancel afterwards.
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) { repository.clearDb() }
-        job.cancel()
+        repository.clearDb()
 
         assertTrue(dao.all.isEmpty())
     }

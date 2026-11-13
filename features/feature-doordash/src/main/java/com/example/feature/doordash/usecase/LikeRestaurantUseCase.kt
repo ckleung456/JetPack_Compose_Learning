@@ -6,10 +6,8 @@ import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.usecase.LikeRestaurantUseCaseInput
 import com.example.feature.doordash.module.domain.DoordashDbRepository
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -26,12 +24,11 @@ class LikeRestaurantUseCase @Inject constructor(
                 LikedStatus.LIKED -> LikedStatus.UN_LIKED
                 else -> LikedStatus.LIKED
             }
-            withContext(Dispatchers.IO) {
-                localRepository.saveLikedStatus(
-                    restaurantId = input.restaurantId,
-                    likedStatus = likedStatus
-                )
-            }
+            // Suspend Room DAOs are main-safe; Room runs them on its own executor.
+            localRepository.saveLikedStatus(
+                restaurantId = input.restaurantId,
+                likedStatus = likedStatus
+            )
             emit(likedStatus)
         }
 

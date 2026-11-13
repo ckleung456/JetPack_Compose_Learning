@@ -9,7 +9,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.Dispatchers
+import com.example.shared.lib.di.DispatcherIO
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Singleton
 
 @Module
@@ -17,10 +18,13 @@ import javax.inject.Singleton
 object LocationModule {
     @Provides
     @Singleton
-    fun provideLocationAddressProvider(@ApplicationContext context: Context): LocationAddressProvider =
+    fun provideLocationAddressProvider(
+        @ApplicationContext context: Context,
+        @DispatcherIO ioDispatcher: CoroutineDispatcher
+    ): LocationAddressProvider =
         FusedLocationAddressProvider(
             context = context,
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(context),
-            ioDispatcher = Dispatchers.IO
+            ioDispatcher = ioDispatcher
         )
 }

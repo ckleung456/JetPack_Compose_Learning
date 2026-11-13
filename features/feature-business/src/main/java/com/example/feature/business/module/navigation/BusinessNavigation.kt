@@ -1,6 +1,5 @@
 package com.example.feature.business.module.navigation
 
-import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Business
 import androidx.compose.runtime.Composable
@@ -23,7 +22,6 @@ fun EntryProviderScope<NavKey>.BusinessNavEntries(
 ) {
     entry<BusinessRoute.Businesses> {
         BusinessesScreen {
-            Log.w("nav", "business selected: $it")
             navigator.navigate(
                 BusinessRoute.BusinessDetail(
                     detailId = it

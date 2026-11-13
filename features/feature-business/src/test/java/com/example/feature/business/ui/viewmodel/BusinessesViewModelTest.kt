@@ -227,16 +227,40 @@ class BusinessesViewModelTest {
     }
 
     @Test
-    fun `other location errors show a snackbar naming the error`() = runTest {
-        locationProvider.result = Result.Error(LocationError.LOCATION_DISABLED)
+    fun `other location errors show a localized snackbar, not the raw enum name`() = runTest {
+        val expected = mapOf(
+            LocationError.LOCATION_DISABLED to R.string.location_error_disabled,
+            LocationError.UNAVAILABLE to R.string.location_error_unavailable,
+            LocationError.GEOCODER_FAILED to R.string.location_error_geocoder
+        )
+        expected.forEach { (error, messageId) ->
+            locationProvider.result = Result.Error(error)
+            val viewModel = viewModel()
+            subscribe(viewModel)
+
+            viewModel.events.test {
+                viewModel.onAction(BusinessListAction.OnLocationPermissionResult(granted = true))
+                assertEquals(BusinessListEvent.ShowSnackbar(messageId = messageId), awaitItem())
+            }
+            assertEquals(BusinessListState.DEFAULT_ADDRESS, viewModel.state.address)
+        }
+    }
+
+    @Test
+    fun `resubscribing after the stop timeout does not reload or duplicate the pipeline`() = runTest {
         val viewModel = viewModel()
+        val first = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        assertEquals(1, repository.requestedLocations.size)
+
+        // Leave the screen long enough for WhileSubscribed(5_000) to stop upstream, then come back.
+        first.cancel()
+        advanceTimeBy(6_000)
         subscribe(viewModel)
 
-        viewModel.events.test {
-            viewModel.onAction(BusinessListAction.OnLocationPermissionResult(granted = true))
-            assertEquals(BusinessListEvent.ShowSnackbar(message = "LOCATION_DISABLED"), awaitItem())
-        }
-        assertEquals(BusinessListState.DEFAULT_ADDRESS, viewModel.state.address)
+        assertEquals(1, repository.requestedLocations.size)
+        // Sections still update from a single pipeline after resubscribing.
+        viewModel.onAction(BusinessListAction.OnFilterSelect(BusinessFilter.BEER))
+        assertEquals(listOf(BusinessCategory.BEER), viewModel.sections.map { it.category })
     }
 
     @Test

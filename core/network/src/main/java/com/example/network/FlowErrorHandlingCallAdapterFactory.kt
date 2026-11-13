@@ -68,7 +68,7 @@ class FlowErrorHandlingCallAdapterFactory @Inject constructor() : CallAdapter.Fa
                         is SocketTimeoutException,
                         is UnknownHostException -> {
                             val ioException = IOException(
-                                if (throwable is SocketTimeoutException) "Networt timeout" else "Network issue"
+                                if (throwable is SocketTimeoutException) "Network timeout" else "Network issue"
                             )
                             continuation.resumeWithException(
                                 RetrofitException.NetworkError(ioException)

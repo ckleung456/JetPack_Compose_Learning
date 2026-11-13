@@ -62,5 +62,9 @@
     <string name="business_is_open_now">Is open now: %1$s</string>
     <string name="business_day_hours">%1$s   %2$s - %3$s   overnight: %4$s</string>
     <string name="business_close">closed: %1$s</string>
-    <string name="business_special_hours">Special Hours</string>"
+    <string name="business_special_hours">Special Hours</string>
+
+    <string name="location_error_disabled">Location services are turned off.</string>
+    <string name="location_error_unavailable">Couldn\'t get your current location.</string>
+    <string name="location_error_geocoder">Couldn\'t find an address for your location.</string>
 </resources>

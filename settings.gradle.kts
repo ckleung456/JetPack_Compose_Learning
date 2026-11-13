@@ -10,13 +10,6 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.namespace == "com.android") {
-                useVersion("8.13.2")
-            }
-        }
-    }
 }
 
 dependencyResolutionManagement {
@@ -28,7 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "My Application"
 include(":app")
-include("feature-country")
+include(":feature-country")
 project(":feature-country").projectDir = file("features/feature-country")
 include(":feature-doordash")
 project(":feature-doordash").projectDir = file("features/feature-doordash")

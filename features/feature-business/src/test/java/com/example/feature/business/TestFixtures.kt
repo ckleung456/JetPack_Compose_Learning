@@ -86,14 +86,14 @@ class FakeBusinessRepository(
     val requestedLocations = mutableListOf<String>()
     val requestedDetailIds = mutableListOf<String>()
 
-    override suspend fun getPizza(location: String): Flow<List<Business>> {
+    override fun getPizza(location: String): Flow<List<Business>> {
         requestedLocations += location
         return emitOrThrow(pizza, pizzaError)
     }
 
-    override suspend fun getBeer(location: String): Flow<List<Business>> = emitOrThrow(beer, beerError)
+    override fun getBeer(location: String): Flow<List<Business>> = emitOrThrow(beer, beerError)
 
-    override suspend fun getBusinessDetail(id: String): Flow<BusinessDetail> {
+    override fun getBusinessDetail(id: String): Flow<BusinessDetail> {
         requestedDetailIds += id
         return emitOrThrow(detail, detailError)
     }

@@ -3,10 +3,8 @@ package com.example.feature.doordash.module.network
 import com.example.feature.doordash.model.domain.RestaurantDataModel
 import com.example.feature.doordash.model.domain.RestaurantDetailDataModel
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -18,23 +16,20 @@ class DoorDashRepository @Inject constructor(
         const val LIMIT = 50
     }
 
-    suspend fun getRestaurantNearBy(
+    fun getRestaurantNearBy(
         lat: Float,
         lng: Float
-    ): Flow<List<RestaurantDataModel>> = withContext(Dispatchers.IO) {
-        apiService.fetchRestaurantNearBy(
-            lat = lat,
-            lng = lng,
-            offset = OFFSET,
-            limit = LIMIT
-        )
-    }
+    ): Flow<List<RestaurantDataModel>> = apiService.fetchRestaurantNearBy(
+        lat = lat,
+        lng = lng,
+        offset = OFFSET,
+        limit = LIMIT
+    )
 
-    suspend fun getRestaurantDetail(restaurantId: Long): Flow<RestaurantDetailDataModel> = withContext(Dispatchers.IO) {
+    fun getRestaurantDetail(restaurantId: Long): Flow<RestaurantDetailDataModel> =
         apiService.fetchRestaurantDetail(
             id = restaurantId
         ).map {
             it.copy(id = restaurantId)
         }
-    }
 }

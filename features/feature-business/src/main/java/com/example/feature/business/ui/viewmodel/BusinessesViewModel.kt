@@ -27,10 +27,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -42,6 +41,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
@@ -71,8 +71,10 @@ class BusinessesViewModel @Inject constructor(
     )
     val uiState = _uiState
         .onStart {
-            observeSections()
-            loadBusinesses(isRefreshing = false)
+            if (!hasLoaded) {
+                hasLoaded = true
+                loadBusinesses(isRefreshing = false)
+            }
         }
         .stateIn(
             scope = viewModelScope,
@@ -82,12 +84,17 @@ class BusinessesViewModel @Inject constructor(
             )
         )
 
-    private val _events = MutableSharedFlow<BusinessListEvent>()
-    val events = _events.asSharedFlow()
+    private val _events = Channel<BusinessListEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
     private val nearByBusinesses = MutableStateFlow<NearyByBusinessesUi?>(null)
     private var loadJob: Job? = null
     private var locateJob: Job? = null
+    private var hasLoaded = false
+
+    init {
+        observeSections()
+    }
 
     fun onAction(action: BusinessListAction) {
         when(action) {
@@ -241,11 +248,16 @@ class BusinessesViewModel @Inject constructor(
 
     private fun onLocateFailed(error: Error) {
         _uiState.update { it.copy(isLocatingAddress = false) }
-        val locationError = error as? LocationError ?: LocationError.UNAVAILABLE
-        when (locationError) {
-            LocationError.PERMISSION_DENIED -> sendEvent(BusinessListEvent.ShowLocationPermissionDenied)
-            else -> sendEvent(BusinessListEvent.ShowSnackbar(message = locationError.toString()))
+        val messageId = when (error as? LocationError ?: LocationError.UNAVAILABLE) {
+            LocationError.PERMISSION_DENIED -> {
+                sendEvent(BusinessListEvent.ShowLocationPermissionDenied)
+                return
+            }
+            LocationError.LOCATION_DISABLED -> R.string.location_error_disabled
+            LocationError.UNAVAILABLE -> R.string.location_error_unavailable
+            LocationError.GEOCODER_FAILED -> R.string.location_error_geocoder
         }
+        sendEvent(BusinessListEvent.ShowSnackbar(messageId = messageId))
     }
 
     private fun debounceQuery(): Flow<String> {
@@ -269,6 +281,6 @@ class BusinessesViewModel @Inject constructor(
     }
 
     private fun sendEvent(event: BusinessListEvent) {
-        viewModelScope.launch { _events.emit(event) }
+        viewModelScope.launch { _events.send(event) }
     }
 }

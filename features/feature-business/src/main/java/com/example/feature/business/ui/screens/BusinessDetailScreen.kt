@@ -1,6 +1,5 @@
 package com.example.feature.business.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,10 +44,10 @@ fun BusinessDetailScreen(
     viewModel: BusinessDetailViewModel,
     onBackClick: () -> Unit
 ) {
-    Log.w("BusinessDetailScreen", "recompose")
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val title = stringResource(R.string.title_business_detail)
     Scaffold(
+        modifier = modifier,
         topBar = {
             AppTopBar(
                 title = title,
@@ -57,7 +56,7 @@ fun BusinessDetailScreen(
         }
     ) { innerPadding ->
         Box(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
@@ -65,9 +64,8 @@ fun BusinessDetailScreen(
                 state = state,
                 loadingContent = { SimpleLoadingView() },
                 successContent = { content ->
-                    Log.w("BusinessDetailScreen", "successContent")
                     BusinessDetail(
-                        modifier = modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                         businessUi = content
                     )
                 },
@@ -143,7 +141,7 @@ fun BusinessDetail(
                         style = MaterialTheme.typography.bodyMedium,
                     )
 
-                    Spacer(modifier = modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
 
                     val distance = businessUi.distanceText
                     if (distance.isNullOrBlank().not()) {
@@ -174,7 +172,7 @@ fun BusinessDetail(
                 )
             }
 
-            Spacer(modifier = modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             listOfNotNull(
                 businessUi.phone?.let { stringResource(R.string.business_phone, it) },
@@ -191,7 +189,7 @@ fun BusinessDetail(
                 )
             }
 
-            Spacer(modifier = modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             TagListView(
                 modifier = modifier,
@@ -219,7 +217,7 @@ fun BusinessDetail(
             val specialHours = businessUi.specialHours
 
             if (specialHours.isNotEmpty()) {
-                Spacer(modifier = modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = stringResource(R.string.business_special_hours),
                     style = MaterialTheme.typography.titleMedium,

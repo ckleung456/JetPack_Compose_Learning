@@ -67,8 +67,10 @@ fun BusinessesScreen(
     ObserveAsEvents(viewModel.events) { event ->
         when(event) {
             is BusinessListEvent.ShowSnackbar -> scope.launch {
+                val message = event.messageId?.let(context::getString) ?: event.message
+                if (message.isNullOrBlank()) return@launch
                 snackbarHostState.currentSnackbarData?.dismiss()
-                snackbarHostState.showSnackbar(event.message.orEmpty())
+                snackbarHostState.showSnackbar(message)
             }
             is BusinessListEvent.NavigateToDetail -> onBusinessSelected(event.id)
             is BusinessListEvent.ShowLocationPermissionDenied -> scope.launch {
@@ -113,7 +115,7 @@ fun BusinessListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
@@ -142,6 +144,7 @@ fun BusinessListScreen(
                     },
                     successContent = { sections ->
                         BusinessListContent(
+                            modifier = Modifier.fillMaxSize(),
                             sections = sections,
                             onAction = onAction
                         )
@@ -156,10 +159,12 @@ fun BusinessListScreen(
 
 @Composable
 private fun BusinessListContent(
+    modifier: Modifier = Modifier,
     sections: ImmutableList<BusinessSectionUi>,
     onAction: (BusinessListAction) -> Unit
 ) {
     BusinessList(
+        modifier = modifier,
         sections = sections,
         onBusinessClick = {
             onAction(BusinessListAction.OnBusinessSelected(id = it.id))

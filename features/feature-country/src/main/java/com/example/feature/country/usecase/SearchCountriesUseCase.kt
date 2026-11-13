@@ -8,16 +8,13 @@ import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.model.domain.SearchInput
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.text.contains
 
 @ViewModelScoped
 class SearchCountriesUseCase @Inject constructor() : FlowUseCase<SearchInput, UIState<CountriesUIState>, UIState<CountriesUIState>>() {
-    override suspend fun flowWork(input: SearchInput): Flow<UIState<CountriesUIState>> = withContext(Dispatchers.IO) {
+    override suspend fun flowWork(input: SearchInput): Flow<UIState<CountriesUIState>> =
         flow {
             val currentState = input.currentState
             if (currentState is UIState.Success) {
@@ -52,7 +49,6 @@ class SearchCountriesUseCase @Inject constructor() : FlowUseCase<SearchInput, UI
                 emit(currentState)
             }
         }
-    }
 
 
     override suspend fun onSucceedDataHandling(intermediate: UIState<CountriesUIState>): UseCaseOutputWithStatus.Success<UIState<CountriesUIState>> =

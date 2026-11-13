@@ -52,6 +52,11 @@ android {
     }
 }
 
+ksp {
+    // Exported schemas give Room a history to write and test Migrations against.
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(project(":core:location"))
     implementation(project(":core:presentation"))
@@ -77,7 +82,7 @@ dependencies {
     // room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.complier)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

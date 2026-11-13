@@ -1,6 +1,5 @@
 package com.example.feature.business.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,10 +40,15 @@ class BusinessDetailViewModel @AssistedInject constructor(
     private val _detailId: String
         get() = savedStateHandle[ARGUMENT_BUSINESS_DETAIL_ID] ?: detailId
 
+    private var hasLoaded = false
+
     private val _uiState = MutableStateFlow<UIState<BusinessDetailUi>>(UIState.Loading)
     val uiState = _uiState
         .onStart {
-            loadBusinessDetail(_detailId)
+            if (!hasLoaded) {
+                hasLoaded = true
+                loadBusinessDetail(_detailId)
+            }
         }
         .stateIn(
             scope = viewModelScope,
@@ -63,7 +67,6 @@ class BusinessDetailViewModel @AssistedInject constructor(
     }
 
     private fun loadBusinessDetail(id: String) {
-        Log.w("BusinessDetailViewModel", "loadBusinessDetail: $id")
         viewModelScope.launch {
             getBusinessDetailUseCase(id).collect { output ->
                 when(output) {

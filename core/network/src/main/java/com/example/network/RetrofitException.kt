@@ -2,7 +2,6 @@ package com.example.network
 
 import com.example.domain.DataError
 import com.example.domain.Kind
-import com.google.gson.Gson
 import retrofit2.Response
 import retrofit2.Retrofit
 import java.io.IOException
@@ -15,8 +14,7 @@ sealed class RetrofitException constructor(
     open val successType: Type?,
     override val kind: Kind,
     open val exception: Throwable?,
-    open val retrofit: Retrofit?,
-    open val gson: Gson
+    open val retrofit: Retrofit?
 ) : RuntimeException(errorMessage, exception), DataError {
     data class NetworkError(
         override val exception: IOException
@@ -27,8 +25,7 @@ sealed class RetrofitException constructor(
         successType = null,
         kind = Kind.NETWORK,
         exception = exception,
-        retrofit = null,
-        gson =Gson()
+        retrofit = null
     )
 
     data class HttpError(
@@ -43,8 +40,7 @@ sealed class RetrofitException constructor(
         successType = successType,
         kind = Kind.HTTP,
         exception = null,
-        retrofit = retrofit,
-        gson = Gson()
+        retrofit = retrofit
     )
 
     data class UnexpectedError(
@@ -56,7 +52,6 @@ sealed class RetrofitException constructor(
         successType = null,
         kind = Kind.UNEXPECTED,
         exception = exception,
-        retrofit = null,
-        gson = Gson()
+        retrofit = null
     )
 }

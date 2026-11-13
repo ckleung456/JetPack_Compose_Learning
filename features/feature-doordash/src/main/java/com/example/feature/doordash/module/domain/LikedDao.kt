@@ -13,11 +13,14 @@ interface LikedDao {
     fun getAll(): Flow<List<LikedDb>>
 
     @Query("SELECT * FROM LikedDb WHERE id = :id")
-    fun getById(id: Long): LikedDb?
+    suspend fun getById(id: Long): LikedDb?
 
     @Insert(onConflict = REPLACE)
-    fun insert(likedDb: LikedDb)
+    suspend fun insert(likedDb: LikedDb)
 
     @Delete
-    fun deleteAll(items: List<LikedDb>): Int
+    suspend fun deleteAll(items: List<LikedDb>): Int
+
+    @Query("DELETE FROM LikedDb")
+    suspend fun clearAll()
 }
