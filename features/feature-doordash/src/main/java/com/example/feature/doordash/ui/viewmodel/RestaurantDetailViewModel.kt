@@ -3,8 +3,9 @@ package com.example.feature.doordash.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.core.ui.model.UIState
-import com.example.core.usecase.UseCaseOutputWithStatus
+import com.example.presentation.model.UIState
+import com.example.presentation.model.toUiError
+import com.example.domain.usecase.UseCaseOutputWithStatus
 import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.RestaurantDetailDataModel
 import com.example.feature.doordash.model.domain.usecase.GetRestaurantDetailInput
@@ -77,10 +78,7 @@ class RestaurantDetailViewModel @AssistedInject constructor(
                                 )
                             }
                             is UseCaseOutputWithStatus.Failed -> _uiState.send(
-                                UIState.Error(
-                                    message = state.error.message.orEmpty(),
-                                    kind = state.error.kind
-                                )
+                                state.error.toUiError()
                             )
                         }
                     }

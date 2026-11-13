@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">core</string>
-
-    <string name="error_title_fail_to_load_image">Failed to load image</string>
-    <string name="cd_back">Back</string>
-</resources>

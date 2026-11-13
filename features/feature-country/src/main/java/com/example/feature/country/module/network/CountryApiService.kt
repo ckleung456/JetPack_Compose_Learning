@@ -1,6 +1,6 @@
 package com.example.feature.country.module.network
 
-import com.example.core.network.FlowErrorHandlingCallAdapterFactory
+import com.example.network.FlowErrorHandlingCallAdapterFactory
 import com.example.feature.country.BuildConfig
 import com.google.gson.GsonBuilder
 import com.google.gson.Strictness

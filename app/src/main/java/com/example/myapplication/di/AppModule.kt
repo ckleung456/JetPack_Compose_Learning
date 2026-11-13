@@ -1,7 +1,6 @@
 package com.example.myapplication.di
 
 import android.content.Context
-import androidx.room.Room
 import com.example.feature.doordash.module.domain.LikedDao
 import com.example.myapplication.module.local.MyAppDatabase
 import dagger.Module
@@ -44,11 +43,7 @@ class AppModule {
     @Provides
     fun provideDb(
         @ApplicationContext context: Context
-    ) : MyAppDatabase = Room.databaseBuilder(
-        context = context,
-        MyAppDatabase::class.java,
-        "MY_APP_DB"
-    ).fallbackToDestructiveMigration().build()
+    ) : MyAppDatabase = MyAppDatabase.getDatabase(context = context)
 
     @Singleton
     @Provides

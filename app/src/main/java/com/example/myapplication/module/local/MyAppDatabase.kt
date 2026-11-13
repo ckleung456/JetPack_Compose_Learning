@@ -10,7 +10,7 @@ import com.example.feature.doordash.module.domain.LikedDb
 
 @Database(
     entities = [LikedDb::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MyAppDatabase : RoomDatabase() {
@@ -23,7 +23,7 @@ abstract class MyAppDatabase : RoomDatabase() {
                 context = context.applicationContext,
                 MyAppDatabase::class.java,
                 "MY_APP_DB"
-            ).fallbackToDestructiveMigration().build()
+            ).build()
             INSTANCE = instance
             instance
         }

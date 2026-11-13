@@ -1,4 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="title_business">Business</string>
+    <string name="title_business_detail">Business Detail</string>
+    <string name="cd_search">Search</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="partial_failure_pizza">Couldn\'t load pizza places.</string>
+    <string name="partial_failure_beer">Couldn\'t load beer places.</string>
+
+    <string name="change_address">Change address</string>
+    <string name="searching_near">Searching near</string>
+    <string name="finding_location">Finding your location…</string>
+
+    <string name="filter_all">All</string>
+    <string name="filter_pizza">Pizza</string>
+    <string name="filter_beer">Beer</string>
+
+    <string name="search_by_name">Search by name</string>
+    <string name="search_clear">Clear Search</string>
+    <string name="empty_search_results">No places match \"%1$s\".</string>
+
+    <string name="section_pizza">Pizza (%1$d)</string>
+    <string name="section_beer">Beer (%1$d)</string>
+    <string name="cd_rating">Rating %1$s</string>
+
+    <plurals name="review_count">
+        <item quantity="one">%1$d review</item>
+        <item quantity="other">%1$d reviews</item>
+    </plurals>
+
+    <string name="location_permission_denied">Location permissions is needed to access your current location…</string>
+    <string name="settings">Settings</string>
+
+    <string name="location_change_location">Change Location</string>
+    <string name="location_enter_address">Enter Address</string>
+    <string name="location_use_current_location">Use Current Location</string>
+    <string name="location_address">Address</string>
+
+    <string name="detail_menu">Menu: %1$s</string>
+    <string name="click_here">Click here</string>
+
+    <string name="Sunday">Sunday</string>
+    <string name="Monday">Monday</string>
+    <string name="Tuesday">Tuesday</string>
+    <string name="Wednesday">Wednesday</string>
+    <string name="Thursday">Thursday</string>
+    <string name="Friday">Friday</string>
+    <string name="Saturday">Saturday</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string name="business_phone">Phone: %1$s</string>
+    <string name="business_claimed">Business claimed: %1$s</string>
+    <string name="business_closed">Business closed: %1$s</string>
+
+    <string name="business_date_opened">Date opened: %1$s</string>
+    <string name="business_date_closed">Date closed: %1$s</string>
+
+    <string name="business_hours_type">Hours type: %1$s</string>
+    <string name="business_is_open_now">Is open now: %1$s</string>
+    <string name="business_day_hours">%1$s (%2$s - %3$s), overnight: %4$s</string>
+    <string name="business_close">closed: %1$s</string>
+    <string name="business_special_hours">Special Hours</string>"
 </resources>

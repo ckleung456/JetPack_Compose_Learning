@@ -1,6 +1,6 @@
 package com.example.feature.country.model.domain
 
-import com.example.core.ui.model.UIState
+import com.example.presentation.model.UIState
 
 data class SearchInput(
     val query: String,

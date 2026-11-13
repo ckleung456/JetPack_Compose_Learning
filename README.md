@@ -47,12 +47,16 @@ MyApplication/
 
 ## Configuration
 
-API base URLs (`COUNTRY_SERVER_ENDPOINT`, `DOORDASH_SERVER_ENDPOINT`) are injected as `BuildConfig` fields via the [Secrets Gradle Plugin](https://github.com/google/secrets-gradle-plugin). Define them in a local, git-ignored `secrets.properties` (or `local.properties`) at the project root:
+API base URLs and API keys (`COUNTRY_SERVER_ENDPOINT`, `DOORDASH_SERVER_ENDPOINT`, `YELP_SERVER_ENDPOINT`, `YELP_API_TOKEN`) are injected as `BuildConfig` fields via the [Secrets Gradle Plugin](https://github.com/google/secrets-gradle-plugin). Define them in a local, git-ignored `secrets.properties` (or `local.properties`) at the project root:
 
 ```properties
 COUNTRY_SERVER_ENDPOINT=https://your-country-api.example.com/
 DOORDASH_SERVER_ENDPOINT=https://your-doordash-api.example.com/
+YELP_SERVER_ENDPOINT=https://api.yelp.com/v3/
+YELP_API_TOKEN=your-yelp-fusion-api-key
 ```
+
+`YELP_API_TOKEN` is a real credential - never hardcode it in source, only in the git-ignored properties file.
 
 ## Tech stack
 

@@ -1,7 +1,7 @@
 package com.example.feature.country.usecase
 
-import com.example.core.usecase.FlowUseCase
-import com.example.core.usecase.UseCaseOutputWithStatus
+import com.example.shared.lib.FlowUseCase
+import com.example.domain.usecase.UseCaseOutputWithStatus
 import com.example.feature.country.model.domain.Country
 import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.module.network.CountryRepository

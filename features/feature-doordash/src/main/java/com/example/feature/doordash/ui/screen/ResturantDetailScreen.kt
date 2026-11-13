@@ -10,10 +10,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.core.ui.AppTopBar
-import com.example.core.ui.ErrorView
-import com.example.core.ui.FullScreenCenteredContent
-import com.example.core.ui.UIStatefulContent
+import com.example.presentation.AppTopBar
+import com.example.presentation.ErrorView
+import com.example.presentation.FullScreenCenteredContent
+import com.example.presentation.UIStatefulContent
 import com.example.feature.doordash.R
 import com.example.feature.doordash.ui.viewmodel.RestaurantDetailViewModel
 import kotlin.text.orEmpty
@@ -21,7 +21,7 @@ import kotlin.text.orEmpty
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantDetailScreen(
-    modifier: Modifier = Modifier.fillMaxSize(),
+    modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     viewModel: RestaurantDetailViewModel
 ) {
@@ -36,7 +36,7 @@ fun RestaurantDetailScreen(
             )
         }
     ) { innerPadding ->
-        Box(modifier = modifier.padding(innerPadding)) {
+        Box(modifier = modifier.fillMaxSize().padding(innerPadding)) {
             UIStatefulContent(
                 state = uiState,
                 successContent = { restaurantInfo ->

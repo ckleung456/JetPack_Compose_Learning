@@ -3,10 +3,10 @@ package com.example.feature.country.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.core.ui.model.UIState
-import com.example.core.usecase.UseCaseOutputWithStatus
+import com.example.presentation.model.UIState
+import com.example.presentation.model.toUiError
+import com.example.domain.usecase.UseCaseOutputWithStatus
 import com.example.feature.country.model.domain.CountriesUIState
-import com.example.feature.country.model.domain.Country
 import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.model.domain.CountryUi
 import com.example.feature.country.model.domain.SearchInput
@@ -15,7 +15,6 @@ import com.example.feature.country.usecase.GetCountriesUseCase
 import com.example.feature.country.usecase.SearchCountriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -23,13 +22,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -83,6 +82,7 @@ class CountriesViewModel @Inject constructor(
         viewModelScope.launch {
             _searchQuery
                 .filterNotNull()
+                .distinctUntilChanged()
                 .debounce(SEARCH_DEBOUNCE_MILLIS.milliseconds)
                 .collectLatest { query -> runSearch(query = query) }
         }
@@ -110,10 +110,7 @@ class CountriesViewModel @Inject constructor(
                             }
                         }
                         is UseCaseOutputWithStatus.Failed -> _uiState.update {
-                            UIState.Error(
-                                message = state.error.message.orEmpty(),
-                                kind = state.error.kind
-                            )
+                            state.error.toUiError()
                         }
                     }
                 }
@@ -154,7 +151,7 @@ class CountriesViewModel @Inject constructor(
                     )
                 } else currentState
             }
-            _searchQuery.value = query
+            _searchQuery.update { query }
         }
     }
 

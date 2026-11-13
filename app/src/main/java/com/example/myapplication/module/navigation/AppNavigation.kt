@@ -9,12 +9,15 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import com.example.core.navigation.model.BottomNavItem
-import com.example.core.navigation.model.getSerializersConfig
-import com.example.core.navigation.module.Navigator
-import com.example.core.navigation.module.rememberNavigationState
-import com.example.core.navigation.module.toEntries
-import com.example.core.ui.AppNavigationBar
+import com.example.presentation.navigation.model.BottomNavItem
+import com.example.presentation.navigation.model.getSerializersConfig
+import com.example.presentation.navigation.module.Navigator
+import com.example.presentation.navigation.module.rememberNavigationState
+import com.example.presentation.navigation.module.toEntries
+import com.example.presentation.AppNavigationBar
+import com.example.feature.business.module.navigation.BusinessNavEntries
+import com.example.feature.business.module.navigation.businessRouteTopDestination
+import com.example.feature.business.module.navigation.businessScreensList
 import com.example.feature.country.model.domain.CountryRoute
 import com.example.feature.country.module.navigation.CountryNavEntries
 import com.example.feature.country.module.navigation.countryRouteTopDestination
@@ -29,14 +32,16 @@ fun AppFeatureNavigation(
 ) {
     val topDestinations = listOf<Pair<NavKey, BottomNavItem>>(
         countryRouteTopDestination(),
-        doordashRouteTopDestination()
+        doordashRouteTopDestination(),
+        businessRouteTopDestination()
     ).toMap()
     val navigationState = rememberNavigationState(
         startRoute = CountryRoute.Countries,
         topLevelRoutes = topDestinations.keys,
         serializableConfig = getSerializersConfig(
             screens = countryScreensList() +
-                    doordashScreensList()
+                    doordashScreensList() +
+                    businessScreensList()
         )
     )
     val navigator = remember {
@@ -66,6 +71,7 @@ fun AppFeatureNavigation(
                 entryProvider {
                     CountryNavEntries(navigator = navigator)
                     DoorDashNavEntries(navigator = navigator)
+                    BusinessNavEntries(navigator = navigator)
                 }
             )
         )

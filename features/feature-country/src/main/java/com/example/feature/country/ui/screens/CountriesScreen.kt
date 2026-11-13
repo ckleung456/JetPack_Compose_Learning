@@ -25,18 +25,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.core.ui.AppTopBar
-import com.example.core.ui.EnhancedListItem
-import com.example.core.ui.ErrorView
-import com.example.core.ui.HeaderItem
-import com.example.core.ui.SearchBar
-import com.example.core.ui.UIStatefulContent
-import com.example.core.utils.Utils.ObserveAsEvents
+import com.example.presentation.AppTopBar
+import com.example.presentation.EnhancedListItem
+import com.example.presentation.ErrorView
+import com.example.presentation.HeaderItem
+import com.example.presentation.SearchBar
+import com.example.presentation.UIStatefulContent
 import com.example.feature.country.R
-import com.example.feature.country.model.domain.Country
 import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.model.domain.CountryUi
 import com.example.feature.country.ui.viewmodel.CountriesViewModel
+import com.example.shared.lib.ObserveAsEvents
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

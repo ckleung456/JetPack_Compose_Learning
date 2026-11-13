@@ -1,8 +1,8 @@
 package com.example.feature.country.usecase
 
-import com.example.core.ui.model.UIState
-import com.example.core.usecase.FlowUseCase
-import com.example.core.usecase.UseCaseOutputWithStatus
+import com.example.presentation.model.UIState
+import com.example.shared.lib.FlowUseCase
+import com.example.domain.usecase.UseCaseOutputWithStatus
 import com.example.feature.country.model.domain.CountriesUIState
 import com.example.feature.country.model.domain.CountryItem
 import com.example.feature.country.model.domain.SearchInput
@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.code
 import kotlin.text.contains
 
 @ViewModelScoped

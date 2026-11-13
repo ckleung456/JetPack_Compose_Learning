@@ -11,6 +11,6 @@ sealed interface BusinessRoute : NavKey {
 
     @Serializable
     data class BusinessDetail(
-        val detailId: () -> Unit
+        val detailId: String
     ) : BusinessRoute
 }

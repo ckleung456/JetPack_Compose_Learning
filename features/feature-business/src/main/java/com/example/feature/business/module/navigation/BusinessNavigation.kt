@@ -1,24 +1,44 @@
 package com.example.feature.business.module.navigation
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Business
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.example.core.navigation.model.BottomNavItem
-import com.example.core.navigation.module.Navigator
+import com.example.presentation.navigation.model.BottomNavItem
+import com.example.presentation.navigation.module.Navigator
 import com.example.feature.business.R
 import com.example.feature.business.model.domain.BusinessRoute
+import com.example.feature.business.ui.screens.BusinessDetailScreen
+import com.example.feature.business.ui.screens.BusinessesScreen
+import com.example.feature.business.ui.viewmodel.BusinessDetailViewModel
 
-private const val BUSINESS_DETAIL_KEY = "businessDetailKey"
 
 @Composable
 fun EntryProviderScope<NavKey>.BusinessNavEntries(
-    navigator: Navigator,
+    navigator: Navigator
 ) {
-    entry<BusinessRoute.Businesses> {  }
-    entry<BusinessRoute.BusinessDetail> {  }
+    entry<BusinessRoute.Businesses> {
+        BusinessesScreen {
+            Log.w("nav", "business selected: $it")
+            navigator.navigate(
+                BusinessRoute.BusinessDetail(
+                    detailId = it
+                )
+            )
+        }
+    }
+    entry<BusinessRoute.BusinessDetail> {
+        BusinessDetailScreen(
+            onBackClick = { navigator.goBack() },
+            viewModel = hiltViewModel<BusinessDetailViewModel, BusinessDetailViewModel.Factory> { factory ->
+                factory.create(businessId = it.detailId)
+            }
+        )
+    }
 }
 
 fun businessScreensList() = listOf(

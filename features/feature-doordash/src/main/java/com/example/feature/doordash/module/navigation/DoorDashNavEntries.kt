@@ -7,8 +7,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.example.core.navigation.model.BottomNavItem
-import com.example.core.navigation.module.Navigator
+import com.example.presentation.navigation.model.BottomNavItem
+import com.example.presentation.navigation.module.Navigator
 import com.example.feature.doordash.R
 import com.example.feature.doordash.model.domain.DoordashRoute
 import com.example.feature.doordash.ui.screen.RestaurantDetailScreen

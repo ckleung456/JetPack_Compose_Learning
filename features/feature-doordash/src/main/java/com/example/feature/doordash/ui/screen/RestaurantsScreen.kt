@@ -36,15 +36,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.core.ui.AppTopBar
-import com.example.core.ui.ErrorView
-import com.example.core.ui.SmartNetworkImage
-import com.example.core.ui.UIStatefulContent
-import com.example.core.utils.Utils.ObserveAsEvents
+import com.example.presentation.AppTopBar
+import com.example.presentation.ErrorView
+import com.example.presentation.SmartNetworkImage
+import com.example.presentation.UIStatefulContent
 import com.example.feature.doordash.R
 import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.RestaurantDataModel
 import com.example.feature.doordash.ui.viewmodel.RestaurantListsViewModel
+import com.example.shared.lib.ObserveAsEvents
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

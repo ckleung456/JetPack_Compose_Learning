@@ -1,7 +1,7 @@
 package com.example.feature.doordash.usecase
 
-import com.example.core.usecase.FlowUseCase
-import com.example.core.usecase.UseCaseOutputWithStatus
+import com.example.shared.lib.FlowUseCase
+import com.example.domain.usecase.UseCaseOutputWithStatus
 import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.RestaurantDetailDataModel
 import com.example.feature.doordash.model.domain.usecase.GetRestaurantDetailInput
