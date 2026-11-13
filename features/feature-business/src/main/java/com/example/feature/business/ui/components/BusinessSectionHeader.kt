@@ -32,6 +32,6 @@ fun BusinessSectionHeader(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .testTag("")
+            .testTag(BusinessTestTags.sectionHeader(category))
     )
 }

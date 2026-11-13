@@ -27,7 +27,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -102,10 +101,12 @@ internal fun RestaurantsListView(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp)
     ) {
-        items(restaurants) { restaurantInfo ->
+        items(restaurants, key = { it.first.id }) { restaurantInfo ->
+            // Read straight from the item: `remember { … }` without a key froze the first value, so the
+            // icon never updated and a second tap re-sent the old status.
             val data = restaurantInfo.first
-            val likedStatus = remember { restaurantInfo.second }
-            val restaurantId = remember { data.id }
+            val likedStatus = restaurantInfo.second
+            val restaurantId = data.id
 
             RestaurantListItem(
                 imageUrl = data.coverImgUrl.orEmpty(),

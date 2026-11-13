@@ -60,7 +60,7 @@
 
     <string name="business_hours_type">Hours type: %1$s</string>
     <string name="business_is_open_now">Is open now: %1$s</string>
-    <string name="business_day_hours">%1$s (%2$s - %3$s), overnight: %4$s</string>
+    <string name="business_day_hours">%1$s   %2$s - %3$s   overnight: %4$s</string>
     <string name="business_close">closed: %1$s</string>
     <string name="business_special_hours">Special Hours</string>"
 </resources>

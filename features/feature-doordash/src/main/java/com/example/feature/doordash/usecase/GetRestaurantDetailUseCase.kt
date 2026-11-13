@@ -16,16 +16,12 @@ class GetRestaurantDetailUseCase @Inject constructor(
     private val remoteRepository: DoorDashRepository,
     private val localRepository: DoordashDbRepository
 ) : FlowUseCase<GetRestaurantDetailInput, RestaurantDetailDataModel, Pair<RestaurantDetailDataModel, LikedStatus>>() {
-    lateinit var input: GetRestaurantDetailInput
-
-    override suspend fun flowWork(input: GetRestaurantDetailInput): Flow<RestaurantDetailDataModel> {
-        this.input= input
-        return remoteRepository.getRestaurantDetail(restaurantId = input.restaurantId)
-    }
+    override suspend fun flowWork(input: GetRestaurantDetailInput): Flow<RestaurantDetailDataModel> =
+        remoteRepository.getRestaurantDetail(restaurantId = input.restaurantId)
 
     override suspend fun onSucceedDataHandling(intermediate: RestaurantDetailDataModel): UseCaseOutputWithStatus.Success<Pair<RestaurantDetailDataModel, LikedStatus>> =
         UseCaseOutputWithStatus.Success(
-            result = localRepository.getLikedStatusById(restaurantId = input.restaurantId)?.let {
+            result = localRepository.getLikedStatusById(restaurantId = intermediate.id)?.let {
                 Pair(intermediate, it)
             } ?: run {
                 Pair(intermediate, LikedStatus.NO_REF)

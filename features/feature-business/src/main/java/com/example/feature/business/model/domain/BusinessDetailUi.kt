@@ -83,13 +83,13 @@ fun Open.toOpenUi() = OpenUi(
 )
 
 private fun Int.mapDayOfWeek() = when(this) {
-    0 -> R.string.Sunday
-    1 -> R.string.Monday
-    2 -> R.string.Tuesday
-    3 -> R.string.Wednesday
-    4 -> R.string.Thursday
-    5 -> R.string.Friday
-    6 -> R.string.Saturday
+    0 -> R.string.Monday
+    1 -> R.string.Tuesday
+    2 -> R.string.Wednesday
+    3 -> R.string.Thursday
+    4 -> R.string.Friday
+    5 -> R.string.Saturday
+    6 -> R.string.Sunday
     else -> throw IllegalArgumentException("Invalid day of week: $this")
 }
 

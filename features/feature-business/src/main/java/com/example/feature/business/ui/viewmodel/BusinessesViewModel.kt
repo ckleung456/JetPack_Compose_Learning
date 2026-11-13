@@ -1,6 +1,5 @@
 package com.example.feature.business.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -91,7 +90,6 @@ class BusinessesViewModel @Inject constructor(
     private var locateJob: Job? = null
 
     fun onAction(action: BusinessListAction) {
-        Log.w("BusinessesViewModel", "onAction: $action")
         when(action) {
             is BusinessListAction.OnBusinessSelected -> sendEvent(
                 NavigateToDetail(id = action.id)
@@ -242,6 +240,7 @@ class BusinessesViewModel @Inject constructor(
     }
 
     private fun onLocateFailed(error: Error) {
+        _uiState.update { it.copy(isLocatingAddress = false) }
         val locationError = error as? LocationError ?: LocationError.UNAVAILABLE
         when (locationError) {
             LocationError.PERMISSION_DENIED -> sendEvent(BusinessListEvent.ShowLocationPermissionDenied)

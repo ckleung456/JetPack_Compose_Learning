@@ -1,5 +1,6 @@
 package com.example.feature.business.usecase
 
+import com.example.domain.ErrorExcept
 import com.example.domain.Result
 import com.example.domain.location.LocationAddressProvider
 import com.example.shared.lib.FlowUseCase
@@ -16,7 +17,7 @@ class GetCurrentAddressUseCase @Inject constructor(
     override suspend fun flowWork(input: Unit): Flow<String> = flow {
         when(val result = locationAddressProvider.getCurrentAddress()) {
             is Result.Success -> emit(result.data)
-            is Result.Error -> throw Exception(result.error.toString())
+            is Result.Error -> throw ErrorExcept(error = result.error)
         }
     }
 

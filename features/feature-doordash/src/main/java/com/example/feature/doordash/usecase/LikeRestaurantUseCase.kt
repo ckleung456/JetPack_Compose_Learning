@@ -6,8 +6,10 @@ import com.example.feature.doordash.model.domain.LikedStatus
 import com.example.feature.doordash.model.domain.usecase.LikeRestaurantUseCaseInput
 import com.example.feature.doordash.module.domain.DoordashDbRepository
 import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -22,13 +24,15 @@ class LikeRestaurantUseCase @Inject constructor(
             // TODO: set a scheduler/job to retry in background if db has data
             val likedStatus = when(input.status) {
                 LikedStatus.LIKED -> LikedStatus.UN_LIKED
-                LikedStatus.UN_LIKED -> LikedStatus.LIKED
-                else -> LikedStatus.NO_REF
+                else -> LikedStatus.LIKED
             }
-            localRepository.saveLikedStatus(
-                restaurantId = input.restaurantId,
-                likedStatus = likedStatus
-            )
+            withContext(Dispatchers.IO) {
+                localRepository.saveLikedStatus(
+                    restaurantId = input.restaurantId,
+                    likedStatus = likedStatus
+                )
+            }
+            emit(likedStatus)
         }
 
     override suspend fun onSucceedDataHandling(intermediate: LikedStatus): UseCaseOutputWithStatus.Success<LikedStatus> =

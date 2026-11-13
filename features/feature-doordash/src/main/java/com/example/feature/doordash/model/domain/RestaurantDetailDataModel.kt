@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RestaurantDetailDataModel(
-    val id: Long = Long.MIN_VALUE,
+    val id: Long,
     @SerializedName("phone_number")
     val phoneNumber: String? = null,
     @SerializedName("delivery_fee")

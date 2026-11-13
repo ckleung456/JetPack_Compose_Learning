@@ -52,7 +52,7 @@ fun AppFeatureNavigation(
         modifier = modifier,
         bottomBar = {
             AppNavigationBar(
-                selectedKey = CountryRoute.Countries,
+                selectedKey = navigationState.topLevelRoute,
                 items = topDestinations,
                 onSelectKey = {
                     navigator.navigate(it)

@@ -8,3 +8,5 @@ sealed interface Result<out SUCCESS, out E : Error> {
 }
 
 typealias EmptyResult<E> = Result<Unit, E>
+
+class ErrorExcept(val error: Error) : Exception(error.toString())

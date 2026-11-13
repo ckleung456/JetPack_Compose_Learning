@@ -64,7 +64,7 @@ MyApplication/
 - **DI**: [Hilt](https://dagger.dev/hilt/), with a module per feature (`CountryModule`, `DoordashModule`, `BusinessModule`), `LocationModule` in `core:location`, and app-level providers in `AppModule`.
 - **Navigation**: [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) with type-safe, `@Serializable` route keys and a custom `Navigator`/`NavigationState` layer in `core:presentation` for a shared bottom-nav + top-app-bar shell.
 - **Networking**: Retrofit + OkHttp + Gson, with a custom call adapter (`FlowErrorHandlingCallAdapterFactory`) so repositories return `Flow<T>` and errors surface as typed `RetrofitException`s. The Business feature adds an `AuthInterceptor` that sends the Yelp API key as a `Bearer` token.
-- **Errors**: typed `Result<T, E : Error>` / `DataError` in `core:domain` for non-network failures such as location lookup.
+- **Errors**: typed `Result<T, E : Error>` / `DataError` in `core:domain` for non-network failures such as location lookup. To fail a `flow {}` with a domain error, throw `ErrorExcept(error)`; `FlowUseCase` unwraps it so the `Failed` output carries the original `Error`. Exceptions that already implement `Error` (e.g. `RetrofitException`) pass through unchanged.
 - **Location**: Play Services Fused Location Provider + `Geocoder` (`core:location`). Runtime permission is requested with `rememberLocationPermissionRequester` (`core:presentation`).
 - **Persistence**: Room (`MyAppDatabase` in `app`, feature-owned DAOs like `LikedDao`) for local state such as liked restaurants.
 - **Async**: Kotlin Coroutines/Flow throughout; `FlowUseCase` standardizes the loading/success/error lifecycle for every use case.
@@ -111,6 +111,8 @@ The app declares `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_COARSE_LOCATION`, a
 | Async | Kotlin Coroutines (+ Play Services) | 1.11.0 |
 | Location | Play Services Location | 21.4.0 |
 | Serialization | Kotlinx Serialization | 1.9.0 |
+| Testing | JUnit 4, kotlinx-coroutines-test, Turbine | 4.13.2 / 1.11.0 / 1.2.0 |
+| UI testing | Robolectric, Compose UI Test, Espresso | 4.16 / BOM / 3.7.0 |
 
 ## Requirements
 
@@ -125,3 +127,45 @@ The app declares `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_COARSE_LOCATION`, a
 ```
 
 Or open the project in Android Studio and run the `app` configuration.
+
+## Testing
+
+There are three kinds of tests:
+
+| Kind | Where | Runs on | Command |
+| --- | --- | --- | --- |
+| Unit tests | `<module>/src/test` | JVM | `./gradlew testDebugUnitTest` |
+| UI tests (Compose + Robolectric) | `<module>/src/test` (`*UiTest.kt`) | JVM, no device | `./gradlew testDebugUnitTest` |
+| End-to-end instrumented tests (Compose + Espresso) | `app/src/androidTest` | Emulator or device | `./gradlew :app:connectedDebugAndroidTest` |
+
+Run a single module with e.g. `./gradlew :feature-business:testDebugUnitTest`. Reports are written to `<module>/build/reports/tests/testDebugUnitTest/index.html` (JVM) and `app/build/reports/androidTests/connected/debug/index.html` (instrumented).
+
+`connectedDebugAndroidTest` runs on **every** attached device. To use just one, set `ANDROID_SERIAL` (e.g. `ANDROID_SERIAL=emulator-5556 ./gradlew :app:connectedDebugAndroidTest`). Installing needs some free space on the device: an emulator with an almost-full `/data` fails with `install-create ... Unknown failure`.
+
+### Unit test approach
+
+- **No mocking library.** Tests use small hand-written fakes at the module boundary: fake Retrofit API interfaces (`FakeBusinessApi`, `FakeCountryApis`, `FakeDoorDashAPIs`), an in-memory `FakeLikedDao`, `FakeBusinessRepository`, and `FakeLocationAddressProvider`. Real repositories, use cases and ViewModels run on top of them.
+- **Coroutines.** Each feature module has a `MainDispatcherRule` (in its `TestFixtures.kt`) that swaps `Dispatchers.Main` for an `UnconfinedTestDispatcher`. `runTest` shares its scheduler, so debounced search can be tested with `advanceTimeBy`.
+- **ViewModels.** `uiState` uses `stateIn(WhileSubscribed)`, so tests keep a collector running in `backgroundScope`. One-off events/channels are checked with Turbine. Where production code hops to `Dispatchers.IO` (Country and DoorDash repositories/ViewModels), tests wait with `uiState.first { … }` instead of reading `value`.
+- **Android stubs.** Modules with tests set `testOptions.unitTests.isReturnDefaultValues = true`, so `android.util.Log` calls are no-ops on the JVM.
+
+### UI test approach
+
+- **Robolectric + Compose UI Test.** Screen and component tests use `createComposeRule()` with `@RunWith(AndroidJUnit4::class)`, so they run on the JVM inside `testDebugUnitTest` and need no emulator. They run against SDK 35 (`src/test/resources/robolectric.properties`). Modules with UI tests set `unitTests.isIncludeAndroidResources = true` so real string resources resolve, and add `ui-test-manifest` as a `debugImplementation` so the test activity is in the manifest.
+- **Stateless screens are tested directly.** `BusinessListScreen` and `AddressDialog` get a `BusinessListState` and record the `BusinessListAction`s they send. Screens that take a ViewModel (`CountriesScreen`, `RestaurantScreen`, `BusinessDetailScreen`) get the real ViewModel built on the same fakes as the unit tests. Where the ViewModel hops to `Dispatchers.IO`, tests wait with `composeRule.waitUntil { … }`.
+- **Test tags.** The business screens use named tags from `BusinessTestTags` (address header, search field, filter chips, section headers, list, dialogs). Other screens are found by visible text and content descriptions.
+- **End-to-end on a device.** `MainActivityNavigationTest` launches the real `MainActivity` (real Hilt graph and backends) with `createAndroidComposeRule`. It drives the bottom navigation and uses `Espresso.pressBack()` for the system back button. It checks navigation only, never list data, so it doesn't depend on what the APIs return. Bottom-nav tabs are matched by label (`hasText(title) and isSelectable()`), because Material 3 clears the icon's content description when a label is shown.
+
+### Coverage
+
+| Module | What's tested |
+| --- | --- |
+| `core:shared-lib` | `FlowUseCase` (progress/success, input validation, error wrapping, `ErrorExcept` unwrapping, `errorResult` fallback), `Utils`, `Algorithm2` |
+| `core:network` | `FlowErrorHandlingCallAdapterFactory` (body and `Response` adapters; HTTP, network, empty-body and unexpected failures, using a fake `Call`), `RetrofitException` |
+| `core:presentation` | `Error.toUiError()` mapping, `Navigator`/`NavigationState` (tab switching, detail push/pop, back to start, per-tab stacks, `resetAtFront`, `stacksInUse` order). **UI:** `ErrorView` retry, `UIStatefulContent` slots, `SearchBar` typing/clear, `AppTopBar` back button, `AppNavigationBar` (only `selectedKey` highlighted, highlight follows key changes, clicks report key) |
+| `feature-business` | `BusinessRepositoryImp` DTO mapping, `SearchPizzaAndBeerUseCase` (partial and total failure), `BuildBusinessSectionsUseCase`, `GetCurrentAddressUseCase`, `GetBusinessDetailUseCase`, UI mappers, `BusinessesViewModel` (loading, filter, debounced search, address dialog, location permission, location errors, refresh/retry, saved state), `BusinessDetailViewModel`. **UI:** `BusinessListScreen` (loading/error/success, sections, selection, filter chips, search, address header, source dialog), `AddressDialog` (prefill, confirm, blank disables search, cancel), `BusinessDetailScreen` (detail, Yes/No and day-name rows, hours, special hours, back, error + retry) |
+| `feature-country` | `GetCountriesUseCase` grouping, `SearchCountriesUseCase`, flag emoji mapper, `CountriesViewModel` (load, error, restore, search, clear, toggle, selection), `CountryDetailViewModel`. **UI:** `CountriesScreen` (letter headers, search toggle and filtering, selection, error + retry) |
+| `feature-doordash` | `LikeStatusTypeConverter`, `DoordashDbRepository`, nearby/detail/like use cases (like emits the new status, overlapping detail requests don't mix up liked statuses), `RestaurantListsViewModel` (starts in `Loading`, load, error, liking updates only that row, emission order), `RestaurantDetailViewModel` (load, restore from saved state, error + retry, emission order). **UI:** `RestaurantScreen` (list, selection, error + retry, like button toggles on every tap), `RestaurantDetailScreen` (load, restore without refetch, error + retry) |
+| `app` (instrumented) | `MainActivityNavigationTest`: app launches on Countries with all three tabs, bottom nav switches screens, system back returns to Countries, the highlighted tab follows the current screen |
+
+`core:domain` and `core:location` contain only the template example tests. `FusedLocationAddressProvider` and the Room database (`MyAppDatabase`) are not tested yet. They would need instrumented tests or Robolectric with real Play Services and SQLite.

@@ -16,12 +16,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,16 +36,15 @@ class RestaurantListsViewModel @Inject constructor(
         private const val DOOR_DASH_LNG = -122.139956F
     }
 
-    private val _uiState = Channel<UIState<List<Pair<RestaurantDataModel, LikedStatus>>>>(Channel.BUFFERED)
+    private val _uiState = MutableStateFlow<UIState<List<Pair<RestaurantDataModel, LikedStatus>>>>(UIState.Loading)
     val uiState = _uiState
-        .receiveAsFlow()
         .onStart {
             getRestaurants()
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = UIState.Default
+            initialValue = UIState.Loading
         )
 
     private val _selectedRestaurant = Channel<Long>(Channel.BUFFERED)
@@ -57,22 +57,20 @@ class RestaurantListsViewModel @Inject constructor(
         lng: Float = DOOR_DASH_LNG
     ) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                getRestaurantListUseCase.invoke(
-                    input = GetNearByRestaurantInput(
-                        lat = lat,
-                        lng = lng
-                    )
-                ).collect { state ->
-                    launch(Dispatchers.Main) {
-                        when (state) {
-                            is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
-                            is UseCaseOutputWithStatus.Success -> _uiState.send(
-                                UIState.Success(data = state.result)
-                            )
-                            is UseCaseOutputWithStatus.Failed -> _uiState.send(
-                                state.error.toUiError()
-                            )
+            getRestaurantListUseCase(
+                input = GetNearByRestaurantInput(
+                    lat = lat,
+                    lng = lng
+                )
+            ).collect { state ->
+                launch(Dispatchers.Main) {
+                    when (state) {
+                        is UseCaseOutputWithStatus.Progress -> _uiState.update { UIState.Loading }
+                        is UseCaseOutputWithStatus.Success -> _uiState.update {
+                            UIState.Success(data = state.result)
+                        }
+                        is UseCaseOutputWithStatus.Failed -> _uiState.update {
+                            state.error.toUiError()
                         }
                     }
                 }
@@ -90,28 +88,24 @@ class RestaurantListsViewModel @Inject constructor(
         restaurantId: Long,
         likedStatus: LikedStatus
     ) = viewModelScope.launch {
-        withContext(Dispatchers.IO) {
-            likeRestaurantUseCase.invoke(
-                input = LikeRestaurantUseCaseInput(
-                    restaurantId = restaurantId,
-                    status = likedStatus
-                )
-            ).collect { state ->
-                if (state is UseCaseOutputWithStatus.Success && uiState.value is UIState.Success) {
-                    val currentData = (uiState.value as UIState.Success<List<Pair<RestaurantDataModel, LikedStatus>>>)
-                    viewModelScope.launch {
-                        _uiState.send(
-                            UIState.Success(
-                                data = currentData.data.map {
-                                    if (it.first.id == restaurantId) {
-                                        it.copy(second = state.result)
-                                    } else {
-                                        it
-                                    }
-                                }
-                            )
-                        )
-                    }
+        likeRestaurantUseCase.invoke(
+            input = LikeRestaurantUseCaseInput(
+                restaurantId = restaurantId,
+                status = likedStatus
+            )
+        ).collect { state ->
+            if (state is UseCaseOutputWithStatus.Success && uiState.value is UIState.Success) {
+                val currentData = (uiState.value as UIState.Success<List<Pair<RestaurantDataModel, LikedStatus>>>)
+                _uiState.update {
+                    UIState.Success(
+                        data = currentData.data.map {
+                            if (it.first.id == restaurantId) {
+                                it.copy(second = state.result)
+                            } else {
+                                it
+                            }
+                        }
+                    )
                 }
             }
         }

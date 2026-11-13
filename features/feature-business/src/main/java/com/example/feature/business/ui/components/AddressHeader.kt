@@ -41,7 +41,7 @@ fun AddressHeader(
                 role = Role.Button,
                 onClick = onClick
             )
-            .testTag("")
+            .testTag(BusinessTestTags.ADDRESS_HEADER)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)

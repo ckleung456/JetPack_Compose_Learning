@@ -58,7 +58,7 @@ fun AddressSourceDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        modifier = Modifier.testTag(""),
+        modifier = Modifier.testTag(BusinessTestTags.ADDRESS_SOURCE_DIALOG),
         title = { Text(stringResource(R.string.location_change_location)) },
         text = {
             Column {
@@ -110,7 +110,7 @@ fun EditAddressDialog(
     val canConfirm = text.isNotBlank()
     AlertDialog(
         onDismissRequest = onDismiss,
-        modifier = Modifier.testTag(""),
+        modifier = Modifier.testTag(BusinessTestTags.ADDRESS_EDIT_DIALOG),
         title = { Text(stringResource(R.string.location_enter_address)) },
         text = {
             OutlinedTextField(
@@ -120,7 +120,7 @@ fun EditAddressDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(requestFocus)
-                    .testTag(""),
+                    .testTag(BusinessTestTags.ADDRESS_EDIT_FIELD),
                 singleLine = true,
                 placeholder = { Text(stringResource(R.string.location_enter_address)) },
                 keyboardOptions = KeyboardOptions(

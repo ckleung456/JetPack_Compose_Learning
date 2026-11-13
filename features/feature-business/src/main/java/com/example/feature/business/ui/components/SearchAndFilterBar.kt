@@ -40,7 +40,7 @@ fun SearchAndFilterBar(
             onValueChange = onQueryChanged,
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag(""),
+                .testTag(BusinessTestTags.SEARCH_FIELD),
             placeholder = { Text(stringResource(R.string.search_by_name)) },
             leadingIcon = {
                 Icon(
@@ -71,7 +71,7 @@ fun SearchAndFilterBar(
                     selected = filter == selectedFilter,
                     onClick = { onFilterSelected(filter) },
                     label = { Text(stringResource(filter.labelRes())) },
-                    modifier = Modifier.testTag("")
+                    modifier = Modifier.testTag(BusinessTestTags.filterChip(filter))
                 )
             }
         }

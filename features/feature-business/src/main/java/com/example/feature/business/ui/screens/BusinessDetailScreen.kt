@@ -32,7 +32,6 @@ import com.example.presentation.AppTopBar
 import com.example.presentation.ErrorView
 import com.example.presentation.ImageItemView
 import com.example.presentation.LinkText
-import com.example.presentation.SimpleListRowItem
 import com.example.presentation.SimpleLoadingView
 import com.example.presentation.TagListView
 import com.example.presentation.UIStatefulContent
@@ -90,6 +89,8 @@ fun BusinessDetail(
     modifier: Modifier = Modifier,
     businessUi: BusinessDetailUi
 ) {
+    val yesText = stringResource(R.string.yes)
+    val noText = stringResource(R.string.no)
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -177,14 +178,16 @@ fun BusinessDetail(
 
             listOfNotNull(
                 businessUi.phone?.let { stringResource(R.string.business_phone, it) },
-                stringResource(R.string.business_claimed, if (businessUi.isClaimed) R.string.yes else R.string.no),
-                stringResource(R.string.business_closed, if (businessUi.isClosed) R.string.yes else R.string.no),
+                stringResource(R.string.business_claimed, if (businessUi.isClaimed) yesText else noText),
+                stringResource(R.string.business_closed, if (businessUi.isClosed) yesText else noText),
                 businessUi.dateOpened?.let { stringResource(R.string.business_date_opened, it) },
                 businessUi.dateClosed?.let { stringResource(R.string.business_date_closed, it) },
             ).forEach {
-                SimpleListRowItem(
-                    title = it,
-                    hasArrowIcon = false
+                Text(
+                    modifier = modifier.padding(top = 16.dp),
+                    text = it,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -198,16 +201,17 @@ fun BusinessDetail(
 
             businessUi.hours?.let { hours ->
                 Spacer(modifier = Modifier.height(16.dp))
-                listOf(
-                    stringResource(R.string.business_is_open_now, if (hours.isOpenNow) R.string.yes else R.string.no),
+                (listOf(
+                    stringResource(R.string.business_is_open_now, if (hours.isOpenNow) yesText else noText),
                     stringResource(R.string.business_hours_type, hours.hoursType)
                 ) + hours.open.map {
-                    stringResource(R.string.business_day_hours, it.day, it.start, it.end, if (it.isOvernight) R.string.yes else R.string.no)
-                }.forEach {
-                    SimpleListRowItem(
-                        modifier = modifier,
-                        title = it,
-                        hasArrowIcon = false
+                    stringResource(R.string.business_day_hours, stringResource(it.day), it.start, it.end, if (it.isOvernight) yesText else noText)
+                }).forEach {
+                    Text(
+                        modifier = modifier.padding(top = 16.dp),
+                        text = it,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -223,12 +227,13 @@ fun BusinessDetail(
                 )
 
                 businessUi.specialHours.map {
-                    stringResource(R.string.business_day_hours, it.date, it.start, it.end, if (it.isOvernight) R.string.yes else R.string.no) + ", " + stringResource(R.string.business_close, if (it.isClosed) R.string.yes else R.string.no)
+                    stringResource(R.string.business_day_hours, it.date, it.start, it.end, if (it.isOvernight) yesText else noText) + ", " + stringResource(R.string.business_close, if (it.isClosed) yesText else noText)
                 }.forEach {
-                    SimpleListRowItem(
-                        modifier = modifier,
-                        title = it,
-                        hasArrowIcon = false
+                    Text(
+                        modifier = modifier.padding(top = 16.dp),
+                        text = it,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }

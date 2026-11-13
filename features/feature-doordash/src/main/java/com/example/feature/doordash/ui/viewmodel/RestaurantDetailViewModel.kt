@@ -14,15 +14,14 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @HiltViewModel(assistedFactory = RestaurantDetailViewModel.Factory::class)
 class RestaurantDetailViewModel @AssistedInject constructor(
@@ -45,12 +44,13 @@ class RestaurantDetailViewModel @AssistedInject constructor(
         null
     )
 
-    private val _uiState = Channel<UIState<Pair<RestaurantDetailDataModel, LikedStatus>>>()
-    val uiState = _uiState.receiveAsFlow()
+    private val _uiState = MutableStateFlow<UIState<Pair<RestaurantDetailDataModel, LikedStatus>>>(UIState.Default)
+    val uiState = _uiState
         .onStart {
-            detail.value?.let {
-                _uiState.send(UIState.Success(data = it))
-            } ?: run {
+            val cached = detail.value
+            if (cached != null) {
+                _uiState.value = UIState.Success(data = cached)
+            } else {
                 fetchRestaurantDetail()
             }
         }
@@ -60,30 +60,24 @@ class RestaurantDetailViewModel @AssistedInject constructor(
             initialValue = UIState.Default
         )
 
+    private var fetchJob: Job? = null
+
     fun fetchRestaurantDetail(restaurantId: Long = this.restaurantId) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                getRestaurantDetailUseCase.invoke(
-                    input = GetRestaurantDetailInput(
-                        restaurantId = restaurantId
-                    )
-                ).collect { state ->
-                    launch {
-                        when(state) {
-                            is UseCaseOutputWithStatus.Progress -> _uiState.send(UIState.Loading)
-                            is UseCaseOutputWithStatus.Success ->{
-                                savedStateHandle[ARGUMENT_RESTAURANT] = state.result
-                                _uiState.send(
-                                    UIState.Success(data = state.result)
-                                )
-                            }
-                            is UseCaseOutputWithStatus.Failed -> _uiState.send(
-                                state.error.toUiError()
-                            )
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
+            getRestaurantDetailUseCase(input = GetRestaurantDetailInput(restaurantId = restaurantId))
+                .collect { state ->
+                    when(state) {
+                        is UseCaseOutputWithStatus.Progress -> _uiState.update { UIState.Loading }
+                        is UseCaseOutputWithStatus.Success -> {
+                            savedStateHandle[ARGUMENT_RESTAURANT] = state.result
+                            _uiState.value = UIState.Success(data = state.result)
+                        }
+                        is UseCaseOutputWithStatus.Failed -> _uiState.update {
+                            state.error.toUiError()
                         }
                     }
                 }
-            }
         }
     }
 }

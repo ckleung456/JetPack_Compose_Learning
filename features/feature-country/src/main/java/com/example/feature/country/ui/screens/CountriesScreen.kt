@@ -73,7 +73,7 @@ fun CountriesScreen(
             )
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        Box(modifier = modifier.padding(innerPadding)) {
             UIStatefulContent(
                 state = state,
                 loadingContent = {
@@ -103,6 +103,7 @@ fun CountriesScreen(
                             }
 
                             CountriesListView(
+                                modifier = modifier,
                                 countries = successState.countries
                             ) {
                                 viewModel.onSelectedCountry(country = it)
@@ -154,6 +155,7 @@ private fun CountriesListView(
                         }
                     }
                     EnhancedListItem(
+                        modifier = modifier,
                         title = country.name.orEmpty(),
                         description = country.code,
                         onClick = onCountryClick

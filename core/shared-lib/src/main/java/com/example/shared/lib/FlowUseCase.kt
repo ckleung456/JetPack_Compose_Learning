@@ -1,6 +1,7 @@
 package com.example.shared.lib
 
 import com.example.domain.Error
+import com.example.domain.ErrorExcept
 import com.example.domain.UnexpectedError
 import com.example.domain.usecase.UseCaseOutputWithStatus
 import kotlinx.coroutines.flow.Flow
@@ -38,10 +39,14 @@ abstract class FlowUseCase<in INPUT, INTERMEDIATE, out RESULT> {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            val error = when (e) {
+                is ErrorExcept -> e.error // a domain Error carried through an exception (e.g. LocationError)
+                is Error -> e             // exceptions that are domain errors themselves (e.g. RetrofitException)
+                else -> UnexpectedError(message = e.message?.ifBlank { null } ?: "Unknown Error")
+            }
             emit(
                 UseCaseOutputWithStatus.Failed(
-                    error = e as? Error
-                        ?: UnexpectedError(message = e.message?.ifBlank { null } ?: "Unknown Error"),
+                    error = error,
                     failedResult = errorResult(error = e)
                 )
             )

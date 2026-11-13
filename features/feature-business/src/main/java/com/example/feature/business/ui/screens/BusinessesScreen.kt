@@ -1,6 +1,5 @@
 package com.example.feature.business.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +38,7 @@ import com.example.feature.business.model.domain.BusinessSectionUi
 import com.example.feature.business.model.domain.BusinessUi
 import com.example.feature.business.ui.components.AddressDialog
 import com.example.feature.business.ui.components.AddressHeader
+import com.example.feature.business.ui.components.BusinessTestTags
 import com.example.feature.business.ui.components.BusinessItem
 import com.example.feature.business.ui.components.SearchAndFilterBar
 import com.example.feature.business.ui.components.BusinessSectionHeader
@@ -65,7 +65,6 @@ fun BusinessesScreen(
     val settingsLabel = stringResource(R.string.settings)
 
     ObserveAsEvents(viewModel.events) { event ->
-        Log.w("BusinessesScreen", "event: $event")
         when(event) {
             is BusinessListEvent.ShowSnackbar -> scope.launch {
                 snackbarHostState.currentSnackbarData?.dismiss()
@@ -163,7 +162,6 @@ private fun BusinessListContent(
     BusinessList(
         sections = sections,
         onBusinessClick = {
-            Log.w("BusinessList", "1 business clicked: $it")
             onAction(BusinessListAction.OnBusinessSelected(id = it.id))
         }
     )
@@ -178,7 +176,7 @@ fun BusinessList(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .testTag(""),
+            .testTag(BusinessTestTags.BUSINESS_LIST),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         sections.forEach { section ->
@@ -196,7 +194,6 @@ fun BusinessList(
                 BusinessItem(
                     business = business,
                     onClick = {
-                        Log.w("BusinessList", "business clicked: $it")
                         onBusinessClick(it)
                     }
                 )
