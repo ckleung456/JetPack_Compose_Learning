@@ -98,4 +98,5 @@ myapp-android-compose = { id = "myapp.android.compose" }
 myapp-android-hilt = { id = "myapp.android.hilt" }
 myapp-android-room = { id = "myapp.android.room" }
 myapp-android-feature = { id = "myapp.android.feature" }
+myapp-android-featureApi = { id = "myapp.android.feature.api" }
 myapp-module-rules = { id = "myapp.module.rules" }

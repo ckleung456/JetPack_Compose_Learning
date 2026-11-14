@@ -52,6 +52,10 @@ gradlePlugin {
             id = libs.plugins.myapp.android.feature.get().pluginId
             implementationClass = "AndroidFeatureConventionPlugin"
         }
+        register("androidFeatureApi") {
+            id = libs.plugins.myapp.android.featureApi.get().pluginId
+            implementationClass = "AndroidFeatureApiConventionPlugin"
+        }
         register("moduleRules") {
             id = libs.plugins.myapp.module.rules.get().pluginId
             implementationClass = "ModuleRulesConventionPlugin"

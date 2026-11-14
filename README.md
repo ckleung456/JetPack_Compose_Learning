@@ -58,15 +58,30 @@ These rules are **enforced by the build**, so the module graph can't form a cycl
 
 ```
 Module dependency rule broken: :feature-business -> :feature-country (in 'implementation'):
-feature modules must not depend on each other (:feature-country); move shared code to a :core module
+feature modules must not depend on another feature's implementation (:feature-country);
+depend on its API module (:feature-country-api) or move shared code to a :core module
 ```
 
 | From | May depend on |
 | --- | --- |
 | `:app` | anything |
-| `:feature-*` | `:core:*` only, never another feature |
+| `:feature-<name>` (implementation) | `:core:*` and any feature API module (its own or another feature's); never another feature's implementation |
+| `:feature-<name>-api` | `:core:*` only; no feature implementations and no other API modules |
 | `:core:*` | core modules in a **lower** layer only |
 | anything | never `:app` |
+
+**Sharing between features.** When one feature needs data or types from another, put that contract (domain models, interfaces, Navigation 3 route keys) in an API module, e.g. `:feature-country-api` (or `:feature:country:api` with nested paths). Create it with the `myapp.android.feature.api` convention plugin: a light Android library with kotlinx.serialization and `:core:domain`, without Compose, Hilt or the network setup. `:feature-country` implements the contract and other features depend only on the API:
+
+```kotlin
+// features/feature-country-api/build.gradle.kts
+plugins { alias(libs.plugins.myapp.android.featureApi) }
+android { namespace = "com.example.feature.country.api" }
+
+// features/feature-business/build.gradle.kts
+dependencies { implementation(project(":feature-country-api")) }
+```
+
+Include it in `settings.gradle.kts` like the other features. The implementation behind the API (e.g. a Hilt binding in `:feature-country`) reaches the other feature at runtime through `:app`, which depends on every feature.
 
 Core layers (defined in `build-logic/.../ModuleRules.kt`):
 
@@ -76,7 +91,7 @@ Core layers (defined in `build-logic/.../ModuleRules.kt`):
 | 1 | `core:network`, `core:shared-lib` |
 | 2 | `core:presentation`, `core:location` |
 
-Every core edge points to a strictly lower layer, so two core modules can never depend on each other, directly or through others. A new core module must be added to `ModuleRules.coreLayers` with its layer; the build tells you if it's missing.
+Why there can't be a cycle: core edges always point to a lower layer, API modules point only to core, feature implementations point only to core and API modules, and only `:app` points to an implementation. A new core module must be added to `ModuleRules.coreLayers` with its layer; the build tells you if it's missing.
 
 ### Gradle setup
 
@@ -90,6 +105,7 @@ Module build files only declare what is specific to them. Everything shared live
 | `myapp.android.hilt` | Hilt + KSP with `hilt-android`/`hilt-compiler` | `app`, `core:network`, `core:shared-lib`, `core:location` |
 | `myapp.android.room` | KSP with Room runtime/ktx/compiler | `app`, `feature-doordash` |
 | `myapp.android.feature` | library + compose + hilt, kotlinx.serialization, the secrets plugin with `BuildConfig`, the core modules, and the common feature and test libraries | every `feature-*` module |
+| `myapp.android.feature.api` | library + kotlinx.serialization with `:core:domain` exposed via `api` | `feature-*-api` modules (none yet) |
 | `myapp.module.rules` | The dependency rules above | applied by the application and library plugins |
 
 Shared settings applied to every module:
