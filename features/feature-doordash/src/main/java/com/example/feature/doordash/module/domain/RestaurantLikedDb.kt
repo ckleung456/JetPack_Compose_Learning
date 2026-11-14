@@ -7,12 +7,12 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.example.feature.doordash.model.domain.LikedStatus
 
-private const val LIKE_TABLE_NAME = "LikedDb"
+private const val LIKE_TABLE_NAME = "RestaurantLikedDb"
 private const val LIKE_STATUS = "Liked_Status"
 
 @Entity(tableName = LIKE_TABLE_NAME)
 @TypeConverters(LikeStatusTypeConverter::class)
-data class LikedDb(
+data class RestaurantLikedDb(
     @PrimaryKey
     var id: Long?,
     @ColumnInfo(name = LIKE_STATUS)

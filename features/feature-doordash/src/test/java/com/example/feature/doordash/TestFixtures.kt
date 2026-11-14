@@ -2,8 +2,8 @@ package com.example.feature.doordash
 
 import com.example.feature.doordash.model.domain.RestaurantDataModel
 import com.example.feature.doordash.model.domain.RestaurantDetailDataModel
-import com.example.feature.doordash.module.domain.LikedDao
-import com.example.feature.doordash.module.domain.LikedDb
+import com.example.feature.doordash.module.domain.RestaurantLikedDao
+import com.example.feature.doordash.module.domain.RestaurantLikedDb
 import com.example.feature.doordash.module.network.DoorDashAPIs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,17 +36,17 @@ fun restaurant(id: Long) = RestaurantDataModel(
     statusType = "open"
 )
 
-/** In-memory [LikedDao] keyed by restaurant id. */
-class FakeLikedDao : LikedDao {
-    private val rows = MutableStateFlow<Map<Long?, LikedDb>>(emptyMap())
-    val all: List<LikedDb> get() = rows.value.values.toList()
+/** In-memory [RestaurantLikedDao] keyed by restaurant id. */
+class FakeLikedDao : RestaurantLikedDao {
+    private val rows = MutableStateFlow<Map<Long?, RestaurantLikedDb>>(emptyMap())
+    val all: List<RestaurantLikedDb> get() = rows.value.values.toList()
 
-    override fun getAll(): Flow<List<LikedDb>> = rows.map { it.values.toList() }
-    override suspend fun getById(id: Long): LikedDb? = rows.value[id]
-    override suspend fun insert(likedDb: LikedDb) {
-        rows.value = rows.value + (likedDb.id to likedDb)
+    override fun getAll(): Flow<List<RestaurantLikedDb>> = rows.map { it.values.toList() }
+    override suspend fun getById(id: Long): RestaurantLikedDb? = rows.value[id]
+    override suspend fun insert(likedDb: RestaurantLikedDb) {
+        rows.value += (likedDb.id to likedDb)
     }
-    override suspend fun deleteAll(items: List<LikedDb>): Int {
+    override suspend fun deleteAll(items: List<RestaurantLikedDb>): Int {
         val ids = items.map { it.id }.toSet()
         val before = rows.value.size
         rows.value = rows.value.filterKeys { it !in ids }

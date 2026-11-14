@@ -2,7 +2,7 @@ package com.example.myapplication.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.feature.doordash.module.domain.LikedDao
+import com.example.feature.doordash.module.domain.RestaurantLikedDao
 import com.example.myapplication.module.local.MyAppDatabase
 import dagger.Module
 import dagger.Provides
@@ -25,7 +25,7 @@ object AppModule {
         .build()
 
     @Provides
-    fun provideLikedDao(
+    fun provideRestaurantLikedDao(
         database: MyAppDatabase
-    ): LikedDao = database.likedDao()
+    ): RestaurantLikedDao = database.restaurantLikedDao()
 }

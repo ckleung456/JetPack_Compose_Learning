@@ -40,7 +40,6 @@ class RestaurantListsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UIState<List<Pair<RestaurantDataModel, LikedStatus>>>>(UIState.Loading)
     val uiState = _uiState
         .onStart {
-            // onStart runs on every (re)subscription; only fetch the first time.
             if (!hasLoaded) {
                 hasLoaded = true
                 getRestaurants()

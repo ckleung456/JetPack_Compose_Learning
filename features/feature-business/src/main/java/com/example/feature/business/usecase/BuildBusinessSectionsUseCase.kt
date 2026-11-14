@@ -5,6 +5,7 @@ import com.example.domain.usecase.UseCaseOutputWithStatus
 import com.example.feature.business.model.domain.BuildBusinessSectionsInput
 import com.example.feature.business.model.domain.BusinessCategory
 import com.example.feature.business.model.domain.BusinessFilter
+import com.example.feature.business.model.domain.BusinessLikeStatus
 import com.example.feature.business.model.domain.BusinessSectionUi
 import com.example.feature.business.model.domain.BusinessUi
 import dagger.hilt.android.scopes.ViewModelScoped
@@ -24,12 +25,13 @@ class BuildBusinessSectionsUseCase @Inject constructor() :
     override suspend fun flowWork(input: BuildBusinessSectionsInput): Flow<List<BusinessSectionUi>> =
         flow {
             val query = input.searchQuery
+            val likedBusinessIds = input.likedBusinessIds
             val sections = buildList {
                 if (input.filter.includes(BusinessCategory.PIZZA)) {
                     add(
                         BusinessSectionUi(
                             category = BusinessCategory.PIZZA,
-                            businesses = input.businesses.pizza.matching(query = query)
+                            businesses = input.businesses.pizza.matching(query = query, likedBusinessIds = likedBusinessIds)
                         )
                     )
                 }
@@ -37,7 +39,7 @@ class BuildBusinessSectionsUseCase @Inject constructor() :
                     add(
                         BusinessSectionUi(
                             category = BusinessCategory.BEER,
-                            businesses = input.businesses.beer.matching(query = query)
+                            businesses = input.businesses.beer.matching(query = query, likedBusinessIds = likedBusinessIds)
                         )
                     )
                 }
@@ -54,9 +56,10 @@ class BuildBusinessSectionsUseCase @Inject constructor() :
         BusinessFilter.BEER -> category == BusinessCategory.BEER
     }
 
-    private fun List<BusinessUi>.matching(query: String): ImmutableList<BusinessUi> =
+    private fun List<BusinessUi>.matching(query: String, likedBusinessIds: Set<String>): ImmutableList<BusinessUi> =
         asSequence()
             .filter { query.isEmpty() || it.name.contains(query, ignoreCase = true) }
+            .map { businessUi -> businessUi.copy(likeStatus = if (businessUi.id in likedBusinessIds) BusinessLikeStatus.LIKED else BusinessLikeStatus.UNLIKED) }
             .distinctBy { it.id }
             .sortedWith(byNameComparator)
             .toList()

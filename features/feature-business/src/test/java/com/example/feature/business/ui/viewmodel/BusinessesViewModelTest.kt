@@ -10,6 +10,8 @@ import com.example.feature.business.FakeLocationAddressProvider
 import com.example.feature.business.MainDispatcherRule
 import com.example.feature.business.R
 import com.example.feature.business.business
+import com.example.feature.business.fakeBusinessLikedStore
+import com.example.feature.business.model.domain.BusinessLikeStatus
 import com.example.feature.business.model.domain.AddressDialogUi
 import com.example.feature.business.model.domain.BusinessCategory
 import com.example.feature.business.model.domain.BusinessFilter
@@ -19,6 +21,8 @@ import com.example.feature.business.model.domain.BusinessListState
 import com.example.feature.business.model.domain.BusinessSectionUi
 import com.example.feature.business.usecase.BuildBusinessSectionsUseCase
 import com.example.feature.business.usecase.GetCurrentAddressUseCase
+import com.example.feature.business.usecase.ObserveLikedBusinessIdsUseCase
+import com.example.feature.business.usecase.ToggleBusinessLikeUseCase
 import com.example.feature.business.usecase.SearchPizzaAndBeerUseCase
 import com.example.presentation.model.UIState
 import kotlinx.collections.immutable.ImmutableList
@@ -45,12 +49,15 @@ class BusinessesViewModelTest {
         beer = listOf(business(id = "b1", name = "Brewery"))
     )
     private val locationProvider = FakeLocationAddressProvider()
+    private val likedStore = fakeBusinessLikedStore()
 
     private fun viewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) = BusinessesViewModel(
         savedStateHandle = savedStateHandle,
         searchPizzaAndBeerUseCase = SearchPizzaAndBeerUseCase(repository),
         buildBusinessSectionsUseCase = BuildBusinessSectionsUseCase(),
-        getCurrentAddressUseCase = GetCurrentAddressUseCase(locationProvider)
+        getCurrentAddressUseCase = GetCurrentAddressUseCase(locationProvider),
+        observeLikedBusinessIdsUseCase = ObserveLikedBusinessIdsUseCase(likedStore),
+        toggleBusinessLikeUseCase = ToggleBusinessLikeUseCase(likedStore)
     )
 
     /** uiState only starts loading while subscribed, so keep a collector alive for the test. */
@@ -324,5 +331,41 @@ class BusinessesViewModelTest {
         viewModel.onAction(BusinessListAction.OnRetry)
 
         assertEquals(2, viewModel.sections.size)
+    }
+
+    private fun BusinessesViewModel.likeStatusOf(id: String) =
+        sections.flatMap { it.businesses }.first { it.id == id }.likeStatus
+
+    @Test
+    fun `like click from the list updates the item`() = runTest {
+        val viewModel = viewModel()
+        subscribe(viewModel)
+        val tonys = viewModel.sections.flatMap { it.businesses }.first { it.id == "p1" }
+
+        viewModel.onAction(BusinessListAction.OnBusinessLikeClick(businessUi = tonys))
+
+        assertEquals(BusinessLikeStatus.LIKED, viewModel.likeStatusOf("p1"))
+        assertEquals(BusinessLikeStatus.UNLIKED, viewModel.likeStatusOf("p2"))
+    }
+
+    // Regression: toggling on the detail screen did not refresh the list when navigating back.
+    @Test
+    fun `like toggled on the detail screen is reflected in the list`() = runTest {
+        val viewModel = viewModel()
+        subscribe(viewModel)
+        assertEquals(BusinessLikeStatus.UNLIKED, viewModel.likeStatusOf("b1"))
+
+        ToggleBusinessLikeUseCase(likedStore)("b1").collect {} // what BusinessDetailViewModel does
+
+        assertEquals(BusinessLikeStatus.LIKED, viewModel.likeStatusOf("b1"))
+    }
+
+    @Test
+    fun `likes persisted earlier are shown on first load`() = runTest {
+        likedStore.toggleBusinessLiked("p2")
+        val viewModel = viewModel()
+        subscribe(viewModel)
+
+        assertEquals(BusinessLikeStatus.LIKED, viewModel.likeStatusOf("p2"))
     }
 }

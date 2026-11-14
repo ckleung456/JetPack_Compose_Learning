@@ -2,6 +2,9 @@ package com.example.feature.business.ui.screens
 
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -15,8 +18,11 @@ import com.example.feature.business.businessDetail
 import com.example.feature.business.model.domain.Hours
 import com.example.feature.business.model.domain.Open
 import com.example.feature.business.model.domain.SpecialHour
+import com.example.feature.business.ui.components.BusinessTestTags
 import com.example.feature.business.ui.viewmodel.BusinessDetailViewModel
+import com.example.feature.business.fakeBusinessLikedStore
 import com.example.feature.business.usecase.GetBusinessDetailUseCase
+import com.example.feature.business.usecase.ToggleBusinessLikeUseCase
 import com.example.network.RetrofitException
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -33,9 +39,15 @@ class BusinessDetailScreenUiTest {
 
     private val repository = FakeBusinessRepository(detail = businessDetail(id = "abc"))
     private var backClicks = 0
+    private val likedStore = fakeBusinessLikedStore()
 
     private fun setScreen() {
-        val viewModel = BusinessDetailViewModel(SavedStateHandle(), "abc", GetBusinessDetailUseCase(repository))
+        val viewModel = BusinessDetailViewModel(
+            SavedStateHandle(),
+            "abc",
+            GetBusinessDetailUseCase(repository, likedStore),
+            ToggleBusinessLikeUseCase(likedStore)
+        )
         composeRule.setContent {
             BusinessDetailScreen(viewModel = viewModel, onBackClick = { backClicks++ })
         }
@@ -159,5 +171,30 @@ class BusinessDetailScreenUiTest {
 
         composeRule.waitUntil { composeRule.onAllNodes(hasText("Detail abc")).fetchSemanticsNodes().isNotEmpty() }
         assertEquals(listOf("abc", "abc"), repository.requestedDetailIds)
+    }
+
+    @Test
+    fun likeButton_togglesOnEveryTap() {
+        setScreen()
+        awaitDetail()
+        val like = composeRule.onNodeWithTag(BusinessTestTags.DETAIL_LIKE_BUTTON)
+        like.assertIsOff()
+
+        like.performClick()
+        like.assertIsOn()
+        assertEquals(setOf("abc"), likedStore.businessLikedIds.value)
+
+        like.performClick()
+        like.assertIsOff()
+        assertEquals(emptySet<String>(), likedStore.businessLikedIds.value)
+    }
+
+    @Test
+    fun likeButton_showsLikeSavedEarlier() {
+        likedStore.toggleBusinessLiked("abc")
+        setScreen()
+        awaitDetail()
+
+        composeRule.onNodeWithTag(BusinessTestTags.DETAIL_LIKE_BUTTON).assertIsOn()
     }
 }

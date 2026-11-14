@@ -5,9 +5,11 @@ import com.example.domain.Kind
 import com.example.feature.business.FakeBusinessRepository
 import com.example.feature.business.MainDispatcherRule
 import com.example.feature.business.businessDetail
+import com.example.feature.business.fakeBusinessLikedStore
 import com.example.feature.business.model.domain.BusinessDetailAction
 import com.example.feature.business.model.domain.toBusinessDetailUi
 import com.example.feature.business.usecase.GetBusinessDetailUseCase
+import com.example.feature.business.usecase.ToggleBusinessLikeUseCase
 import com.example.network.RetrofitException
 import com.example.presentation.model.UIState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,11 +30,13 @@ class BusinessDetailViewModelTest {
 
     private val repository = FakeBusinessRepository(detail = businessDetail(id = "abc"))
     private val savedStateHandle = SavedStateHandle()
+    private val likedStore = fakeBusinessLikedStore()
 
     private fun viewModel() = BusinessDetailViewModel(
         savedStateHandle = savedStateHandle,
         detailId = "abc",
-        getBusinessDetailUseCase = GetBusinessDetailUseCase(repository)
+        getBusinessDetailUseCase = GetBusinessDetailUseCase(repository, likedStore),
+        toggleBusinessLikeUseCase = ToggleBusinessLikeUseCase(likedStore)
     )
 
     private fun TestScope.subscribe(viewModel: BusinessDetailViewModel) {
@@ -69,5 +73,19 @@ class BusinessDetailViewModelTest {
 
         assertEquals(UIState.Success(businessDetail(id = "abc").toBusinessDetailUi()), viewModel.uiState.value)
         assertEquals(listOf("abc", "abc"), repository.requestedDetailIds)
+    }
+
+    @Test
+    fun `like click toggles the like status without refetching`() = runTest {
+        val viewModel = viewModel()
+        subscribe(viewModel)
+
+        viewModel.onAction(BusinessDetailAction.OnLikeClick)
+        assertEquals(UIState.Success(businessDetail(id = "abc").toBusinessDetailUi(liked = true)), viewModel.uiState.value)
+        assertEquals(setOf("abc"), likedStore.businessLikedIds.value)
+
+        viewModel.onAction(BusinessDetailAction.OnLikeClick)
+        assertEquals(UIState.Success(businessDetail(id = "abc").toBusinessDetailUi(liked = false)), viewModel.uiState.value)
+        assertEquals(listOf("abc"), repository.requestedDetailIds)
     }
 }

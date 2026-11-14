@@ -3,6 +3,7 @@
     <string name="title_business">Business</string>
     <string name="title_business_detail">Business Detail</string>
     <string name="cd_search">Search</string>
+    <string name="cd_like">Like</string>
     <string name="cancel">Cancel</string>
 
     <string name="partial_failure_pizza">Couldn\'t load pizza places.</string>

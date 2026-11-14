@@ -16,7 +16,8 @@ data class BusinessUi(
     val reviewCount: Int,
     val priceText: String?,
     val distanceText: String?,
-    val address: String
+    val address: String,
+    val likeStatus: BusinessLikeStatus = BusinessLikeStatus.UNLIKED
 )
 
 @Immutable
@@ -26,11 +27,15 @@ data class BusinessSectionUi(
 )
 
 @Immutable
-data class NearyByBusinessesUi(
+data class NearByBusinessesUi(
     val pizza: ImmutableList<BusinessUi> = persistentListOf(),
     val beer: ImmutableList<BusinessUi> = persistentListOf(),
     val failedCategories: ImmutableSet<BusinessCategory> = persistentSetOf()
 )
+
+enum class BusinessLikeStatus {
+    LIKED, UNLIKED
+}
 
 internal const val METERS_PER_MILE = 1609.344
 

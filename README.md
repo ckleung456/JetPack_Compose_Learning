@@ -1,6 +1,6 @@
 # My Application
 
-A native Android app built with Jetpack Compose, showcasing a multi-module architecture with three independent features: a **Country browser**, a **DoorDash-style restaurant list**, and a **Yelp-backed "Pizza & Beer" business search** with device-location support. It's structured as a playground for modern Android patterns — Navigation 3, Hilt, Room, Retrofit/Flow, Play Services location, and a layered set of shared core modules.
+A native Android app built with Jetpack Compose, showcasing a multi-module architecture with three independent features: a **Country browser**, a **DoorDash-style restaurant list**, and a **Yelp-backed "Pizza & Beer" business search** with device-location support and likes. It's structured as a playground for modern Android patterns — Navigation 3, Hilt, Room, Retrofit/Flow, Play Services location, and a layered set of shared core modules.
 
 ## Screenshots
 
@@ -17,8 +17,8 @@ Captured from the debug build on an Android 15 emulator (1080×1920, dark theme)
 
 | Pizza & beer list | Beer filter | Change location | Business detail |
 | :---: | :---: | :---: | :---: |
-| <img src="docs/screenshots/business.png" width="200" alt="Nearby pizza places with photos, ratings, price and distance"> | <img src="docs/screenshots/business-filter-beer.png" width="200" alt="List filtered to beer places"> | <img src="docs/screenshots/business-address-dialog.png" width="200" alt="Dialog to enter an address or use the current location"> | <img src="docs/screenshots/business-detail.png" width="200" alt="Business detail with photo, rating, categories and weekly hours"> |
-| Sections by category, search by name, All/Pizza/Beer chips | Category filter | Type an address or use device location | Rating, categories, claimed/closed, open now, weekly hours |
+| <img src="docs/screenshots/business.png" width="200" alt="Nearby pizza places with photos, ratings, price, distance and a heart button; three places are liked"> | <img src="docs/screenshots/business-filter-beer.png" width="200" alt="List filtered to beer places with one liked"> | <img src="docs/screenshots/business-address-dialog.png" width="200" alt="Dialog to enter an address or use the current location"> | <img src="docs/screenshots/business-detail.png" width="200" alt="Business detail with a filled heart in the top bar, photo, rating, categories and weekly hours"> |
+| Sections by category, search by name, All/Pizza/Beer chips, heart to like | Category filter; likes are kept across filters | Type an address or use device location | Like from the top bar; the list shows the same status when you go back |
 
 ### DoorDash
 
@@ -27,7 +27,7 @@ Captured from the debug build on an Android 15 emulator (1080×1920, dark theme)
 | <img src="docs/screenshots/doordash.png" width="240" alt="DoorDash tab showing the error view with a Try Again button"> |
 | The configured `DOORDASH_SERVER_ENDPOINT` currently returns **HTTP 404**, so this shows the shared error view with **Try Again**. The list and detail screens render once the endpoint responds. |
 
-To refresh these, install the debug build (`./gradlew :app:installDebug`), open each page, and capture it with `adb exec-out screencap -p > docs/screenshots/<name>.png`.
+To refresh these, install the debug build (`./gradlew :app:installDebug`), open each page, and capture it with `adb exec-out screencap -p > docs/screenshots/<name>.png`. Lock the emulator to portrait first (`adb shell settings put system accelerometer_rotation 0` and `adb shell settings put system user_rotation 0`) so the images match.
 
 ## Modules
 
@@ -43,7 +43,7 @@ MyApplication/
 └── features/
     ├── feature-country/     # Browse countries fetched from a REST API, search, and view details
     ├── feature-doordash/    # Browse nearby restaurants, like/unlike them (persisted locally)
-    └── feature-business/    # Search nearby pizza & beer spots on Yelp, filter/search, view details
+    └── feature-business/    # Search nearby pizza & beer spots on Yelp, filter/search, like, view details
 ```
 
 ### Dependency rules
@@ -85,6 +85,23 @@ MyApplication/
 - Supports pull-to-refresh and retry. Tapping a business opens a detail screen (`GetBusinessDetailUseCase`, Yelp `businesses/{id}`).
 - The list screen follows a state/action/event (MVI-style) contract: `BusinessListState`, `BusinessListAction`, `BusinessListEvent` consumed via `ObserveAsEvents`.
 
+#### Likes
+Users can like or unlike a business from the list (heart on each row) or from the detail screen (heart in the top bar). Both screens always show the same status, including after going back from the detail screen, and likes are kept across app restarts.
+
+- **One source of truth.** `BusinessLikedStore` (`@Singleton`) holds the liked ids in a `StateFlow<Set<String>>` and saves them to `SharedPreferences`.
+- **ViewModels only talk to use cases.** Neither ViewModel touches the store; three use cases do:
+
+  | Use case | What it does |
+  | --- | --- |
+  | `ToggleBusinessLikeUseCase` | Toggles one business, emits the new liked state once, then completes. |
+  | `ObserveLikedBusinessIdsUseCase` | Long-lived stream of the liked ids: the current set, then every change from any screen. |
+  | `GetBusinessDetailUseCase` | Fetches the detail once and combines it with that business's liked status, so a toggle re-emits the detail with the new `isLiked` without another network call. |
+
+- **List.** `BusinessesViewModel` combines the search results, filter, debounced query and `ObserveLikedBusinessIdsUseCase` into `BuildBusinessSectionsInput`. `BuildBusinessSectionsUseCase` is a pure function that marks each `BusinessUi` as `LIKED`/`UNLIKED` from `likedBusinessIds`. A like click only calls `ToggleBusinessLikeUseCase` (failures show a snackbar); the new status arrives through the observed stream.
+- **Detail.** `BusinessDetailViewModel` keeps one `GetBusinessDetailUseCase` collection running. A like click only calls `ToggleBusinessLikeUseCase`, and the running collection emits the updated detail.
+- **Why going back works.** The list ViewModel stays alive while the detail screen is open, and its sections flow is subscribed to the same store. A toggle on the detail screen rebuilds the list's sections straight away, so the list is already correct when the user goes back.
+- **Accessibility.** `LikeToggleButton` is an `IconToggleButton` with the content description "Like"; its on/off state tells TalkBack whether the business is liked.
+
 ## Architecture
 
 - **Pattern**: Country and DoorDash use MVVM: Composable screens observe `StateFlow<UIState<T>>` from Hilt `ViewModel`s, user actions call ViewModel functions, and use cases talk to repositories. Business uses an MVI-style state/action/event contract on the same foundations.
@@ -93,7 +110,7 @@ MyApplication/
 - **Networking**: Retrofit + OkHttp + Gson, with a custom call adapter (`FlowErrorHandlingCallAdapterFactory`) so repositories return `Flow<T>` and errors surface as typed `RetrofitException`s. The Business feature adds an `AuthInterceptor` that sends the Yelp API key as a `Bearer` token.
 - **Errors**: typed `Result<T, E : Error>` / `DataError` in `core:domain` for non-network failures such as location lookup. To fail a `flow {}` with a domain error, throw `ErrorExcept(error)`; `FlowUseCase` unwraps it so the `Failed` output carries the original `Error`. Exceptions that already implement `Error` (e.g. `RetrofitException`) pass through unchanged.
 - **Location**: Play Services Fused Location Provider + `Geocoder` (`core:location`). Runtime permission is requested with `rememberLocationPermissionRequester` (`core:presentation`).
-- **Persistence**: Room (`MyAppDatabase` in `app`, feature-owned DAOs like `LikedDao`) for local state such as liked restaurants.
+- **Persistence**: Room (`MyAppDatabase` in `app`, feature-owned DAOs like `LikedDao`) for local state such as liked restaurants. Liked businesses are a small id set, kept in `SharedPreferences` (provided by `PreferenceModule` in `core:shared-lib`) through `BusinessLikedStore`.
 - **Async**: Kotlin Coroutines/Flow throughout; `FlowUseCase` standardizes the loading/success/error lifecycle for every use case.
 - **UI**: Jetpack Compose + Material 3, `kotlinx.collections.immutable` for stable list state, Coil for image loading.
 
@@ -163,15 +180,17 @@ There are three kinds of tests:
 | --- | --- | --- | --- |
 | Unit tests | `<module>/src/test` | JVM | `./gradlew testDebugUnitTest` |
 | UI tests (Compose + Robolectric) | `<module>/src/test` (`*UiTest.kt`) | JVM, no device | `./gradlew testDebugUnitTest` |
+| Component instrumented tests (Compose) | `features/feature-business/src/androidTest` | Emulator or device | `./gradlew :feature-business:connectedDebugAndroidTest` |
 | End-to-end instrumented tests (Compose + Espresso) | `app/src/androidTest` | Emulator or device | `./gradlew :app:connectedDebugAndroidTest` |
 
 Run a single module with e.g. `./gradlew :feature-business:testDebugUnitTest`. Reports are written to `<module>/build/reports/tests/testDebugUnitTest/index.html` (JVM) and `app/build/reports/androidTests/connected/debug/index.html` (instrumented).
 
-`connectedDebugAndroidTest` runs on **every** attached device. To use just one, set `ANDROID_SERIAL` (e.g. `ANDROID_SERIAL=emulator-5556 ./gradlew :app:connectedDebugAndroidTest`). Installing needs some free space on the device: an emulator with an almost-full `/data` fails with `install-create ... Unknown failure`.
+`connectedDebugAndroidTest` runs on **every** attached device. To use just one, set `ANDROID_SERIAL` (e.g. `ANDROID_SERIAL=emulator-5556 ./gradlew :feature-business:connectedDebugAndroidTest :app:connectedDebugAndroidTest`). Installing needs some free space on the device: an emulator with an almost-full `/data` fails with `install-create ... Unknown failure`.
 
 ### Unit test approach
 
-- **No mocking library.** Tests use small hand-written fakes at the module boundary: fake Retrofit API interfaces (`FakeBusinessApi`, `FakeCountryApis`, `FakeDoorDashAPIs`), an in-memory `FakeLikedDao`, `FakeBusinessRepository`, and `FakeLocationAddressProvider`. Real repositories, use cases and ViewModels run on top of them.
+- **No mocking library.** Tests use small hand-written fakes at the module boundary: fake Retrofit API interfaces (`FakeBusinessApi`, `FakeCountryApis`, `FakeDoorDashAPIs`), an in-memory `FakeLikedDao`, `FakeBusinessRepository`, `FakeLocationAddressProvider`, and an in-memory `FakeSharedPreferences` (with a `fakeBusinessLikedStore()` helper) so the real `BusinessLikedStore` runs in plain JVM tests. Real repositories, use cases and ViewModels run on top of them.
+- **Likes across screens.** Business tests build the list and detail ViewModels (or their use cases) on one shared `BusinessLikedStore`, the way the app's singleton links them. Toggling from one side and checking the other covers the list ↔ detail sync without navigation.
 - **Coroutines.** Each feature module has a `MainDispatcherRule` (in its `TestFixtures.kt`) that swaps `Dispatchers.Main` for an `UnconfinedTestDispatcher`. `runTest` shares its scheduler, so debounced search can be tested with `advanceTimeBy`.
 - **ViewModels.** `uiState` uses `stateIn(WhileSubscribed)`, so tests keep a collector running in `backgroundScope`. One-off events/channels are checked with Turbine. Where production code hops to `Dispatchers.IO` (Country and DoorDash repositories/ViewModels), tests wait with `uiState.first { … }` instead of reading `value`.
 - **Android stubs.** Modules with tests set `testOptions.unitTests.isReturnDefaultValues = true`, so `android.util.Log` calls are no-ops on the JVM.
@@ -180,19 +199,22 @@ Run a single module with e.g. `./gradlew :feature-business:testDebugUnitTest`. R
 
 - **Robolectric + Compose UI Test.** Screen and component tests use `createComposeRule()` with `@RunWith(AndroidJUnit4::class)`, so they run on the JVM inside `testDebugUnitTest` and need no emulator. They run against SDK 35 (`src/test/resources/robolectric.properties`). Modules with UI tests set `unitTests.isIncludeAndroidResources = true` so real string resources resolve, and add `ui-test-manifest` as a `debugImplementation` so the test activity is in the manifest.
 - **Stateless screens are tested directly.** `BusinessListScreen` and `AddressDialog` get a `BusinessListState` and record the `BusinessListAction`s they send. Screens that take a ViewModel (`CountriesScreen`, `RestaurantScreen`, `BusinessDetailScreen`) get the real ViewModel built on the same fakes as the unit tests. Where the ViewModel hops to `Dispatchers.IO`, tests wait with `composeRule.waitUntil { … }`.
-- **Test tags.** The business screens use named tags from `BusinessTestTags` (address header, search field, filter chips, section headers, list, dialogs). Other screens are found by visible text and content descriptions.
+- **Test tags.** The business screens use named tags from `BusinessTestTags` (address header, search field, filter chips, section headers, list, dialogs, `businessItem(id)` rows, `likeButton(id)` on each row, and `DETAIL_LIKE_BUTTON`). Like buttons are checked with `assertIsOn()`/`assertIsOff()`. The list is lazy, so tests scroll a row into view with `performScrollToNode` before checking its like button. Other screens are found by visible text and content descriptions.
+- **Component tests on a device.** `BusinessLikeInstrumentedTest` (`feature-business/src/androidTest`) renders `LikeToggleButton` and `BusinessList` on a real device with `createComposeRule()`. It needs no network or Hilt: like clicks flip a local set of liked ids, the same way the ViewModel rebuilds sections.
 - **End-to-end on a device.** `MainActivityNavigationTest` launches the real `MainActivity` (real Hilt graph and backends) with `createAndroidComposeRule`. It drives the bottom navigation and uses `Espresso.pressBack()` for the system back button. It checks navigation only, never list data, so it doesn't depend on what the APIs return. Bottom-nav tabs are matched by label (`hasText(title) and isSelectable()`), because Material 3 clears the icon's content description when a label is shown.
+- **End-to-end likes.** `BusinessLikeSyncTest` runs the real app against the live Yelp API. It uses whichever business is listed first and its current like status (likes persist between runs): it toggles the like on the detail screen, presses back and checks the list, toggles again on the list and checks the detail, which also restores the original status. It is skipped with `assumeTrue` if the list can't load (no network or API key).
 
 ### Coverage
 
 | Module | What's tested |
 | --- | --- |
-| `core:shared-lib` | `FlowUseCase` (progress/success, input validation, error wrapping, `ErrorExcept` unwrapping, `errorResult` fallback), `Utils`, `Algorithm2` |
+| `core:shared-lib` | `FlowUseCase` (progress/success, input validation, error wrapping, `ErrorExcept` unwrapping, `errorResult` fallback), `Utils` |
 | `core:network` | `FlowErrorHandlingCallAdapterFactory` (body and `Response` adapters; HTTP, network, empty-body and unexpected failures, using a fake `Call`), `RetrofitException` |
 | `core:presentation` | `Error.toUiError()` mapping, `Navigator`/`NavigationState` (tab switching, detail push/pop, back to start, per-tab stacks, `resetAtFront`, `stacksInUse` order). **UI:** `ErrorView` retry, `UIStatefulContent` slots, `SearchBar` typing/clear, `AppTopBar` back button, `AppNavigationBar` (only `selectedKey` highlighted, highlight follows key changes, clicks report key) |
-| `feature-business` | `BusinessRepositoryImp` DTO mapping, `SearchPizzaAndBeerUseCase` (partial and total failure), `BuildBusinessSectionsUseCase`, `GetCurrentAddressUseCase`, `GetBusinessDetailUseCase`, UI mappers, `BusinessesViewModel` (loading, filter, debounced search, address dialog, location permission, location errors, refresh/retry, saved state), `BusinessDetailViewModel`. **UI:** `BusinessListScreen` (loading/error/success, sections, selection, filter chips, search, address header, source dialog), `AddressDialog` (prefill, confirm, blank disables search, cancel), `BusinessDetailScreen` (detail, Yes/No and day-name rows, hours, special hours, back, error + retry) |
+| `feature-business` | `BusinessRepositoryImp` DTO mapping, `SearchPizzaAndBeerUseCase` (partial and total failure), `BuildBusinessSectionsUseCase`, `GetCurrentAddressUseCase`, `GetBusinessDetailUseCase`, UI mappers, `BusinessesViewModel` (loading, filter, debounced search, address dialog, location permission, location errors shown as localized messages, refresh/retry, saved state, resubscribing doesn't reload, like click, like toggled on another screen updates the list, saved likes shown on first load), `BusinessDetailViewModel` (load, error, retry, like toggles without refetching). **Likes:** `BusinessLikedStore` (toggle result, per-id toggling, saved and restored through preferences, clear, observers get every change), `ToggleBusinessLikeUseCase` (emits once and completes), `ObserveLikedBusinessIdsUseCase` (current ids then every change, shared across use case instances), `GetBusinessDetailUseCase` (re-emits on like change without refetching, ignores other ids), `BuildBusinessSectionsUseCase` (liked ids mark businesses). **UI:** `BusinessesScreen` (real ViewModel: partial-failure snackbar shows the resource text, screen modifier applied only to the root, like button toggles, like from another screen shown in the list), `BusinessListScreen` (loading/error/success, sections, selection, filter chips, search, address header, source dialog, like buttons reflect status, like click sends the action without opening the detail, like follows state changes), `AddressDialog` (prefill, confirm, blank disables search, cancel), `BusinessDetailScreen` (detail, Yes/No and day-name rows, hours, special hours, back, error + retry, like toggles on every tap, saved like shown) |
+| `feature-business` (instrumented) | `BusinessLikeInstrumentedTest`: `LikeToggleButton` is clickable, described as "Like" and toggles on/off; list like toggles only that business, doesn't open the detail, works for rows further down, shows likes changed elsewhere; tapping a row opens the detail |
 | `feature-country` | `GetCountriesUseCase` grouping, `SearchCountriesUseCase`, flag emoji mapper, `CountriesViewModel` (load, error, restore, search, clear, toggle, selection), `CountryDetailViewModel`. **UI:** `CountriesScreen` (letter headers, search toggle and filtering, selection, error + retry) |
 | `feature-doordash` | `LikeStatusTypeConverter`, `DoordashDbRepository`, nearby/detail/like use cases (like emits the new status, overlapping detail requests don't mix up liked statuses), `RestaurantListsViewModel` (starts in `Loading`, load, error, liking updates only that row, emission order), `RestaurantDetailViewModel` (load, restore from saved state, error + retry, emission order). **UI:** `RestaurantScreen` (list, selection, error + retry, like button toggles on every tap), `RestaurantDetailScreen` (load, restore without refetch, error + retry) |
-| `app` (instrumented) | `MainActivityNavigationTest`: app launches on Countries with all three tabs, bottom nav switches screens, system back returns to Countries, the highlighted tab follows the current screen |
+| `app` (instrumented) | `MainActivityNavigationTest`: app launches on Countries with all three tabs, bottom nav switches screens, system back returns to Countries, the highlighted tab follows the current screen. `BusinessLikeSyncTest`: a like toggled on the detail screen is shown in the list after going back, and a like toggled on the list is shown in the detail |
 
 `core:domain` and `core:location` contain only the template example tests. `FusedLocationAddressProvider` and the Room database (`MyAppDatabase`) are not tested yet. They would need instrumented tests or Robolectric with real Play Services and SQLite.

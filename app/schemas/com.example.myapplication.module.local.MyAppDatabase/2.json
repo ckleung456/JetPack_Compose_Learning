@@ -2,10 +2,10 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "81b92a43ffd75768ec10a8cbd5d1906a",
+    "identityHash": "1ed7c65e708755580991ba37e5c4c910",
     "entities": [
       {
-        "tableName": "LikedDb",
+        "tableName": "RestaurantLikedDb",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER, `Liked_Status` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
@@ -30,7 +30,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '81b92a43ffd75768ec10a8cbd5d1906a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1ed7c65e708755580991ba37e5c4c910')"
     ]
   }
 }

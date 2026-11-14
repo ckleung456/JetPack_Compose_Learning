@@ -168,6 +168,9 @@ private fun BusinessListContent(
         sections = sections,
         onBusinessClick = {
             onAction(BusinessListAction.OnBusinessSelected(id = it.id))
+        },
+        onLikeClick = {
+            onAction(BusinessListAction.OnBusinessLikeClick(businessUi = it))
         }
     )
 }
@@ -176,7 +179,8 @@ private fun BusinessListContent(
 fun BusinessList(
     modifier: Modifier = Modifier,
     sections: ImmutableList<BusinessSectionUi>,
-    onBusinessClick: (BusinessUi) -> Unit
+    onBusinessClick: (BusinessUi) -> Unit,
+    onLikeClick: (BusinessUi) -> Unit
 ) {
     LazyColumn(
         modifier = modifier
@@ -200,6 +204,9 @@ fun BusinessList(
                     business = business,
                     onClick = {
                         onBusinessClick(it)
+                    },
+                    onLikeClick = {
+                        onLikeClick(it)
                     }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 104.dp))

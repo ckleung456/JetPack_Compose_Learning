@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,8 @@ import com.example.feature.business.R
 import com.example.feature.business.model.domain.BusinessDetailAction
 import com.example.feature.business.model.domain.BusinessDetailUi
 import com.example.feature.business.ui.components.BusinessRatingRow
+import com.example.feature.business.ui.components.BusinessTestTags
+import com.example.feature.business.ui.components.LikeToggleButton
 import com.example.feature.business.ui.viewmodel.BusinessDetailViewModel
 import com.example.presentation.AppTopBar
 import com.example.presentation.ErrorView
@@ -37,6 +40,7 @@ import com.example.presentation.UIStatefulContent
 import com.example.presentation.model.ImageItemType
 import com.example.presentation.model.ImageListItem
 import com.example.presentation.model.TextLinkItem
+import com.example.presentation.model.UIState
 
 @Composable
 fun BusinessDetailScreen(
@@ -51,7 +55,14 @@ fun BusinessDetailScreen(
         topBar = {
             AppTopBar(
                 title = title,
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                actions = {
+                    LikeToggleButton(
+                        modifier = Modifier.testTag(BusinessTestTags.DETAIL_LIKE_BUTTON),
+                        isLiked = (state as? UIState.Success<BusinessDetailUi>)?.data?.isLiked ?: false,
+                        onToggle = { viewModel.onAction(BusinessDetailAction.OnLikeClick) }
+                    )
+                }
             )
         }
     ) { innerPadding ->
@@ -124,7 +135,7 @@ fun BusinessDetail(
             }
 
             BusinessRatingRow(
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
                 ratingText = businessUi.ratingText,
                 reviewCount = businessUi.reviewCount,
             )
@@ -133,15 +144,14 @@ fun BusinessDetail(
             val address = businessUi.address
             if (address.isNotBlank()) {
                 Row(
-                    modifier = modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = address,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium
                     )
-
-                    Spacer(modifier = Modifier.weight(1f))
 
                     val distance = businessUi.distanceText
                     if (distance.isNullOrBlank().not()) {
@@ -158,9 +168,9 @@ fun BusinessDetail(
             val menu = businessUi.menu
             if (menu.isNullOrBlank().not()) {
                 LinkText(
-                    modifier = modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth(0.8f),
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .padding(top = 16.dp),
                     textResId = R.string.detail_menu,
                     links = listOfNotNull(
                         TextLinkItem(
@@ -182,7 +192,7 @@ fun BusinessDetail(
                 businessUi.dateClosed?.let { stringResource(R.string.business_date_closed, it) },
             ).forEach {
                 Text(
-                    modifier = modifier.padding(top = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     text = it,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
@@ -192,7 +202,7 @@ fun BusinessDetail(
             Spacer(modifier = Modifier.height(16.dp))
 
             TagListView(
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
                 tags = businessUi.categories.filter { it.isNotBlank() },
                 isClickable = false
             )
@@ -206,7 +216,7 @@ fun BusinessDetail(
                     stringResource(R.string.business_day_hours, stringResource(it.day), it.start, it.end, if (it.isOvernight) yesText else noText)
                 }).forEach {
                     Text(
-                        modifier = modifier.padding(top = 16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                         text = it,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
@@ -228,7 +238,7 @@ fun BusinessDetail(
                     stringResource(R.string.business_day_hours, it.date, it.start, it.end, if (it.isOvernight) yesText else noText) + ", " + stringResource(R.string.business_close, if (it.isClosed) yesText else noText)
                 }.forEach {
                     Text(
-                        modifier = modifier.padding(top = 16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                         text = it,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary

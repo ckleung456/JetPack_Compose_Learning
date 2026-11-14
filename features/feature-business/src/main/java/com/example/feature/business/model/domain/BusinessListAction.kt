@@ -3,6 +3,7 @@ package com.example.feature.business.model.domain
 sealed interface BusinessListAction {
     data class ShowSnackbar(val message: String? = null, val messageId: Int? = 0): BusinessListAction
     data class OnBusinessSelected(val id: String): BusinessListAction
+    data class OnBusinessLikeClick(val businessUi: BusinessUi): BusinessListAction
 
     data class OnFilterSelect(val filter: BusinessFilter): BusinessListAction
     data object OnRefresh: BusinessListAction

@@ -7,7 +7,7 @@ import com.example.feature.business.FakeBusinessRepository
 import com.example.feature.business.MainDispatcherRule
 import com.example.feature.business.business
 import com.example.feature.business.model.domain.BusinessCategory
-import com.example.feature.business.model.domain.NearyByBusinessesUi
+import com.example.feature.business.model.domain.NearByBusinessesUi
 import com.example.feature.business.model.domain.toBusinessUi
 import com.example.network.RetrofitException
 import kotlinx.collections.immutable.persistentListOf
@@ -38,7 +38,7 @@ class SearchPizzaAndBeerUseCaseTest {
             listOf(
                 UseCaseOutputWithStatus.Progress(),
                 UseCaseOutputWithStatus.Success(
-                    NearyByBusinessesUi(
+                    NearByBusinessesUi(
                         pizza = persistentListOf(pizza.toBusinessUi()),
                         beer = persistentListOf(beer.toBusinessUi()),
                         failedCategories = persistentSetOf()

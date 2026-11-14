@@ -7,12 +7,14 @@ import com.example.domain.usecase.UseCaseOutputWithStatus
 import com.example.feature.business.model.domain.BusinessDetailAction
 import com.example.feature.business.model.domain.BusinessDetailUi
 import com.example.feature.business.usecase.GetBusinessDetailUseCase
+import com.example.feature.business.usecase.ToggleBusinessLikeUseCase
 import com.example.presentation.model.UIState
 import com.example.presentation.model.toUiError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -24,7 +26,8 @@ import kotlinx.coroutines.launch
 class BusinessDetailViewModel @AssistedInject constructor(
     private val savedStateHandle: SavedStateHandle,
     @Assisted val detailId: String,
-    private val getBusinessDetailUseCase: GetBusinessDetailUseCase
+    private val getBusinessDetailUseCase: GetBusinessDetailUseCase,
+    private val toggleBusinessLikeUseCase: ToggleBusinessLikeUseCase
 ) : ViewModel() {
     companion object {
         private const val TAG = "BusinessDetailViewModel"
@@ -41,6 +44,7 @@ class BusinessDetailViewModel @AssistedInject constructor(
         get() = savedStateHandle[ARGUMENT_BUSINESS_DETAIL_ID] ?: detailId
 
     private var hasLoaded = false
+    private var loadJob: Job? = null
 
     private val _uiState = MutableStateFlow<UIState<BusinessDetailUi>>(UIState.Loading)
     val uiState = _uiState
@@ -63,11 +67,19 @@ class BusinessDetailViewModel @AssistedInject constructor(
     fun onAction(action: BusinessDetailAction) {
         when(action) {
             BusinessDetailAction.OnRetry -> loadBusinessDetail(_detailId)
+            BusinessDetailAction.OnLikeClick -> onLikeClick()
+        }
+    }
+
+    private fun onLikeClick() {
+        viewModelScope.launch {
+            toggleBusinessLikeUseCase(input = _detailId).collect {}
         }
     }
 
     private fun loadBusinessDetail(id: String) {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             getBusinessDetailUseCase(id).collect { output ->
                 when(output) {
                     is UseCaseOutputWithStatus.Progress -> _uiState.update { UIState.Loading }

@@ -17,9 +17,11 @@ import com.example.feature.business.model.domain.BusinessListEvent
 import com.example.feature.business.model.domain.BusinessListEvent.*
 import com.example.feature.business.model.domain.BusinessListState
 import com.example.feature.business.model.domain.BusinessSectionUi
-import com.example.feature.business.model.domain.NearyByBusinessesUi
+import com.example.feature.business.model.domain.NearByBusinessesUi
 import com.example.feature.business.usecase.BuildBusinessSectionsUseCase
 import com.example.feature.business.usecase.GetCurrentAddressUseCase
+import com.example.feature.business.usecase.ObserveLikedBusinessIdsUseCase
+import com.example.feature.business.usecase.ToggleBusinessLikeUseCase
 import com.example.feature.business.usecase.SearchPizzaAndBeerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -54,7 +57,9 @@ class BusinessesViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val searchPizzaAndBeerUseCase: SearchPizzaAndBeerUseCase,
     private val buildBusinessSectionsUseCase: BuildBusinessSectionsUseCase,
-    private val getCurrentAddressUseCase: GetCurrentAddressUseCase
+    private val getCurrentAddressUseCase: GetCurrentAddressUseCase,
+    private val observeLikedBusinessIdsUseCase: ObserveLikedBusinessIdsUseCase,
+    private val toggleBusinessLikeUseCase: ToggleBusinessLikeUseCase
 ) : ViewModel() {
     companion object {
         private const val TAG = "BusinessesViewModel"
@@ -87,7 +92,7 @@ class BusinessesViewModel @Inject constructor(
     private val _events = Channel<BusinessListEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    private val nearByBusinesses = MutableStateFlow<NearyByBusinessesUi?>(null)
+    private val nearByBusinesses = MutableStateFlow<NearByBusinessesUi?>(null)
     private var loadJob: Job? = null
     private var locateJob: Job? = null
     private var hasLoaded = false
@@ -123,6 +128,7 @@ class BusinessesViewModel @Inject constructor(
                 sendEvent(event = BusinessListEvent.RequestLocationPermission)
             }
             BusinessListAction.OnDialogDismiss -> showDialog(dialogUi = AddressDialogUi.Hidden)
+            is BusinessListAction.OnBusinessLikeClick -> onBusinessLikeClick(businessId = action.businessUi.id)
         }
     }
 
@@ -135,6 +141,16 @@ class BusinessesViewModel @Inject constructor(
                     is UseCaseOutputWithStatus.Progress -> onLoadStarted(isRefreshing = isRefreshing)
                     is UseCaseOutputWithStatus.Success -> onLoadSucceeded(result = output.result)
                     is UseCaseOutputWithStatus.Failed -> onLoadFailed(error = output.error, isRefreshing)
+                }
+            }
+        }
+    }
+
+    private fun onBusinessLikeClick(businessId: String) {
+        viewModelScope.launch {
+            toggleBusinessLikeUseCase(input = businessId).collect { status ->
+                if (status is UseCaseOutputWithStatus.Failed) {
+                    sendEvent(BusinessListEvent.ShowSnackbar(message = status.error.toUiError().message.ifBlank { null }))
                 }
             }
         }
@@ -194,7 +210,7 @@ class BusinessesViewModel @Inject constructor(
         }
     }
 
-    private fun onLoadSucceeded(result: NearyByBusinessesUi) {
+    private fun onLoadSucceeded(result: NearByBusinessesUi) {
         _uiState.update { it.copy(isRefreshing = false) }
         nearByBusinesses.value = result
         result.failedCategories.forEach { category ->
@@ -222,12 +238,14 @@ class BusinessesViewModel @Inject constructor(
         combine(
             nearByBusinesses.filterNotNull(),
             _uiState.map { it.filter }.distinctUntilChanged(),
-            debounceQuery()
-        ) { businesses, filter, searchQuery ->
+            debounceQuery(),
+            observeLikedBusinessIds()
+        ) { businesses, filter, searchQuery, likedBusinessIds ->
             BuildBusinessSectionsInput(
                 businesses = businesses,
                 filter = filter,
-                searchQuery = searchQuery
+                searchQuery = searchQuery,
+                likedBusinessIds = likedBusinessIds
             )
         }
             .flatMapLatest { input -> buildBusinessSectionsUseCase(input = input) }
@@ -259,6 +277,12 @@ class BusinessesViewModel @Inject constructor(
         }
         sendEvent(BusinessListEvent.ShowSnackbar(messageId = messageId))
     }
+
+    private fun observeLikedBusinessIds(): Flow<Set<String>> =
+        observeLikedBusinessIdsUseCase(input = Unit)
+            .filterIsInstance<UseCaseOutputWithStatus.Success<Set<String>>>()
+            .map { it.result }
+            .distinctUntilChanged()
 
     private fun debounceQuery(): Flow<String> {
         val query = _uiState.map { it.searchQuery }.distinctUntilChanged()

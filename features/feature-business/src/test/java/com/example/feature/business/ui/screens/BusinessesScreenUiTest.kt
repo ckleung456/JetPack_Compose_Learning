@@ -3,6 +3,12 @@ package com.example.feature.business.ui.screens
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -15,9 +21,13 @@ import com.example.feature.business.model.domain.BusinessCategory
 import com.example.feature.business.model.domain.BusinessListState
 import com.example.feature.business.model.domain.BusinessSectionUi
 import com.example.feature.business.model.domain.toBusinessUi
+import com.example.feature.business.ui.components.BusinessTestTags
 import com.example.feature.business.ui.viewmodel.BusinessesViewModel
 import com.example.feature.business.usecase.BuildBusinessSectionsUseCase
+import com.example.feature.business.fakeBusinessLikedStore
 import com.example.feature.business.usecase.GetCurrentAddressUseCase
+import com.example.feature.business.usecase.ObserveLikedBusinessIdsUseCase
+import com.example.feature.business.usecase.ToggleBusinessLikeUseCase
 import com.example.feature.business.usecase.SearchPizzaAndBeerUseCase
 import com.example.presentation.model.UIState
 import kotlinx.collections.immutable.persistentListOf
@@ -38,11 +48,14 @@ class BusinessesScreenUiTest {
         val repository = FakeBusinessRepository(pizza = listOf(business(id = "p1", name = "Tony's"))).apply {
             beerError = IOException("boom")
         }
+        val likedStore = fakeBusinessLikedStore()
         val viewModel = BusinessesViewModel(
             savedStateHandle = SavedStateHandle(),
             searchPizzaAndBeerUseCase = SearchPizzaAndBeerUseCase(repository),
             buildBusinessSectionsUseCase = BuildBusinessSectionsUseCase(),
-            getCurrentAddressUseCase = GetCurrentAddressUseCase(FakeLocationAddressProvider())
+            getCurrentAddressUseCase = GetCurrentAddressUseCase(FakeLocationAddressProvider()),
+            observeLikedBusinessIdsUseCase = ObserveLikedBusinessIdsUseCase(likedStore),
+            toggleBusinessLikeUseCase = ToggleBusinessLikeUseCase(likedStore)
         )
 
         composeRule.setContent {
@@ -83,5 +96,60 @@ class BusinessesScreenUiTest {
 
     private companion object {
         const val SCREEN_TAG = "businesses_screen"
+    }
+
+    private val likedStore = fakeBusinessLikedStore()
+
+    private fun setLikeScreen() {
+        val repository = FakeBusinessRepository(
+            pizza = listOf(business(id = "p1", name = "Tony's")),
+            beer = listOf(business(id = "b1", name = "Brewery"))
+        )
+        val viewModel = BusinessesViewModel(
+            savedStateHandle = SavedStateHandle(),
+            searchPizzaAndBeerUseCase = SearchPizzaAndBeerUseCase(repository),
+            buildBusinessSectionsUseCase = BuildBusinessSectionsUseCase(),
+            getCurrentAddressUseCase = GetCurrentAddressUseCase(FakeLocationAddressProvider()),
+            observeLikedBusinessIdsUseCase = ObserveLikedBusinessIdsUseCase(likedStore),
+            toggleBusinessLikeUseCase = ToggleBusinessLikeUseCase(likedStore)
+        )
+        composeRule.setContent {
+            BusinessesScreen(viewModel = viewModel, onBusinessSelected = {})
+        }
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodes(hasTestTag(BusinessTestTags.likeButton("p1"))).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    @Test
+    fun likeButton_togglesThroughTheViewModel() {
+        setLikeScreen()
+        val like = likeButton("p1")
+        like.assertIsOff()
+
+        like.performClick()
+        like.assertIsOn()
+        likeButton("b1").assertIsOff()
+
+        likeButton("p1").performClick()
+        likeButton("p1").assertIsOff()
+    }
+
+    // Regression: a like toggled on the detail screen wasn't shown when going back to the list.
+    @Test
+    fun likeToggledOnAnotherScreen_isShownInTheList() {
+        setLikeScreen()
+        likeButton("b1").assertIsOff()
+
+        likedStore.toggleBusinessLiked("b1") // what the detail screen's ToggleBusinessLikeUseCase does
+        composeRule.waitForIdle()
+
+        likeButton("b1").assertIsOn()
+    }
+
+    /** The list is lazy, so scroll the row into view before looking up its like button. */
+    private fun likeButton(id: String) = composeRule.run {
+        onNodeWithTag(BusinessTestTags.BUSINESS_LIST).performScrollToNode(hasTestTag(BusinessTestTags.likeButton(id)))
+        onNodeWithTag(BusinessTestTags.likeButton(id))
     }
 }

@@ -6,8 +6,9 @@ import com.example.feature.business.business
 import com.example.feature.business.model.domain.BuildBusinessSectionsInput
 import com.example.feature.business.model.domain.BusinessCategory
 import com.example.feature.business.model.domain.BusinessFilter
+import com.example.feature.business.model.domain.BusinessLikeStatus
 import com.example.feature.business.model.domain.BusinessSectionUi
-import com.example.feature.business.model.domain.NearyByBusinessesUi
+import com.example.feature.business.model.domain.NearByBusinessesUi
 import com.example.feature.business.model.domain.toBusinessUi
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.last
@@ -26,13 +27,17 @@ class BuildBusinessSectionsUseCaseTest {
     private val tonys = business(id = "p1", name = "tony's").toBusinessUi()
     private val apizza = business(id = "p2", name = "Apizza").toBusinessUi()
     private val brewery = business(id = "b1", name = "Brewery").toBusinessUi()
-    private val businesses = NearyByBusinessesUi(
+    private val businesses = NearByBusinessesUi(
         pizza = listOf(tonys, apizza, tonys).toImmutableList(),
         beer = listOf(brewery).toImmutableList()
     )
 
-    private suspend fun sections(filter: BusinessFilter = BusinessFilter.ALL, query: String = "") =
-        (useCase(BuildBusinessSectionsInput(businesses, filter, query)).last()
+    private suspend fun sections(
+        filter: BusinessFilter = BusinessFilter.ALL,
+        query: String = "",
+        likedBusinessIds: Set<String> = emptySet()
+    ) =
+        (useCase(BuildBusinessSectionsInput(businesses, filter, query, likedBusinessIds)).last()
                 as UseCaseOutputWithStatus.Success).result
 
     @Test
@@ -62,5 +67,17 @@ class BuildBusinessSectionsUseCaseTest {
     @Test
     fun `no matches returns no sections`() = runTest {
         assertEquals(emptyList<BusinessSectionUi>(), sections(query = "sushi"))
+    }
+
+    @Test
+    fun `liked ids from the input mark businesses as liked`() = runTest {
+        val statuses = sections(likedBusinessIds = setOf("p2", "b1"))
+            .flatMap { it.businesses }
+            .associate { it.id to it.likeStatus }
+
+        assertEquals(
+            mapOf("p2" to BusinessLikeStatus.LIKED, "p1" to BusinessLikeStatus.UNLIKED, "b1" to BusinessLikeStatus.LIKED),
+            statuses
+        )
     }
 }

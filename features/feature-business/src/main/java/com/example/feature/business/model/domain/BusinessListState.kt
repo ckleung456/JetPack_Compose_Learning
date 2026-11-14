@@ -12,7 +12,7 @@ data class BusinessListState(
     val content: UIState<ImmutableList<BusinessSectionUi>> = UIState.Loading,
     val searchQuery: String = "",
     val isLocatingAddress: Boolean = false,
-    val addressDialogUi: AddressDialogUi = AddressDialogUi.Hidden
+    val addressDialogUi: AddressDialogUi = AddressDialogUi.Hidden,
 ) {
     companion object {
         const val DEFAULT_ADDRESS = "1000 Montgomery Street, San Francisco, CA"

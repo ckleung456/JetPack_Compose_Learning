@@ -4,7 +4,7 @@ import com.example.feature.doordash.model.domain.LikedStatus
 import javax.inject.Inject
 
 class DoordashDbRepository @Inject constructor(
-    private val likedDao: LikedDao
+    private val likedDao: RestaurantLikedDao
 ) {
     fun getAllLikedStatus() = likedDao.getAll()
 
@@ -16,7 +16,7 @@ class DoordashDbRepository @Inject constructor(
 
     suspend fun saveLikedStatus(restaurantId: Long, likedStatus: LikedStatus) {
         likedDao.insert(
-            LikedDb(
+            RestaurantLikedDb(
                 id = restaurantId,
                 likedStatus = likedStatus
             )

@@ -14,8 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.feature.business.model.domain.BusinessLikeStatus
 import com.example.presentation.SmartNetworkImage
 import com.example.feature.business.model.domain.BusinessUi
 
@@ -23,11 +25,13 @@ import com.example.feature.business.model.domain.BusinessUi
 fun BusinessItem(
     modifier: Modifier = Modifier,
     business: BusinessUi,
-    onClick: (BusinessUi) -> Unit
+    onClick: (BusinessUi) -> Unit,
+    onLikeClick: (BusinessUi) -> Unit
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .testTag(BusinessTestTags.businessItem(business.id))
             .clickable { onClick(business) }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -72,5 +76,11 @@ fun BusinessItem(
                 )
             }
         }
+
+        LikeToggleButton(
+            modifier = Modifier.testTag(BusinessTestTags.likeButton(business.id)),
+            isLiked = business.likeStatus == BusinessLikeStatus.LIKED,
+            onToggle = { onLikeClick(business) }
+        )
     }
 }

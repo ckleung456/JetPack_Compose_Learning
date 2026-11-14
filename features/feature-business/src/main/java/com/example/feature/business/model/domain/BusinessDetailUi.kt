@@ -22,7 +22,8 @@ data class BusinessDetailUi(
     val dateClosed: String?,
     val menu: String?,
     val specialHours: List<SpecialHourUi>,
-    val hours: HoursUi?
+    val hours: HoursUi?,
+    val isLiked: Boolean = false
 )
 
 @Immutable
@@ -49,7 +50,9 @@ data class OpenUi(
     val day: Int
 )
 
-fun BusinessDetail.toBusinessDetailUi() = BusinessDetailUi(
+fun BusinessDetail.toBusinessDetailUi(
+    liked: Boolean = false
+) = BusinessDetailUi(
     id = id,
     name = name,
     imageUrl = imageUrl,
@@ -66,7 +69,8 @@ fun BusinessDetail.toBusinessDetailUi() = BusinessDetailUi(
     dateClosed = dateClosed,
     menu = menu,
     specialHours = specialHours.map { it.toSpecialHourUi() },
-    hours = hours?.toHoursUi()
+    hours = hours?.toHoursUi(),
+    isLiked = liked
 )
 
 fun Hours.toHoursUi() = HoursUi(

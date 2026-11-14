@@ -7,7 +7,7 @@ import com.example.feature.business.model.domain.Business
 import com.example.feature.business.model.domain.BusinessCategory
 import com.example.feature.business.model.domain.ErrorData
 import com.example.feature.business.model.domain.NearbyBusinesses
-import com.example.feature.business.model.domain.NearyByBusinessesUi
+import com.example.feature.business.model.domain.NearByBusinessesUi
 import com.example.feature.business.model.domain.toBusinessUi
 import com.example.feature.business.module.network.BusinessRepository
 import com.example.feature.business.utils.Utils.asResult
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @ViewModelScoped
 class SearchPizzaAndBeerUseCase @Inject constructor(
     private val repository: BusinessRepository
-): FlowUseCase<String, NearbyBusinesses, NearyByBusinessesUi>() {
+): FlowUseCase<String, NearbyBusinesses, NearByBusinessesUi>() {
     companion object {
         private const val TAG = "SearchPizzaAndBeerUseCase"
     }
@@ -52,9 +52,9 @@ class SearchPizzaAndBeerUseCase @Inject constructor(
         )
     }
 
-    override suspend fun onSucceedDataHandling(intermediate: NearbyBusinesses): UseCaseOutputWithStatus.Success<NearyByBusinessesUi> =
+    override suspend fun onSucceedDataHandling(intermediate: NearbyBusinesses): UseCaseOutputWithStatus.Success<NearByBusinessesUi> =
         UseCaseOutputWithStatus.Success(
-            result = NearyByBusinessesUi(
+            result = NearByBusinessesUi(
                 pizza = intermediate.pizza.toUi(),
                 beer = intermediate.beer.toUi(),
                 failedCategories = intermediate.failed.keys.toImmutableSet()

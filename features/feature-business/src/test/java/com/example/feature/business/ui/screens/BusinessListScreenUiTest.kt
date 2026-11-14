@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.hasProgressBarRangeInfo
@@ -22,6 +25,7 @@ import com.example.feature.business.business
 import com.example.feature.business.model.domain.AddressDialogUi
 import com.example.feature.business.model.domain.BusinessCategory
 import com.example.feature.business.model.domain.BusinessFilter
+import com.example.feature.business.model.domain.BusinessLikeStatus
 import com.example.feature.business.model.domain.BusinessListAction
 import com.example.feature.business.model.domain.BusinessListState
 import com.example.feature.business.model.domain.BusinessSectionUi
@@ -171,5 +175,66 @@ class BusinessListScreenUiTest {
             ),
             actions
         )
+    }
+
+    @Test
+    fun likeButtons_reflectEachBusinessLikeStatus() {
+        val liked = BusinessListState(
+            content = UIState.Success(
+                persistentListOf(
+                    BusinessSectionUi(
+                        category = BusinessCategory.PIZZA,
+                        businesses = persistentListOf(
+                            business(id = "p1", name = "Tony's").toBusinessUi().copy(likeStatus = BusinessLikeStatus.LIKED),
+                            business(id = "p2", name = "Apizza").toBusinessUi()
+                        )
+                    )
+                )
+            )
+        )
+        setScreen(liked)
+
+        likeButton("p1").assertIsOn()
+        likeButton("p2").assertIsOff()
+    }
+
+    @Test
+    fun likeClick_sendsLikeActionWithoutOpeningTheDetail() {
+        setScreen(loaded)
+
+        likeButton("p1").performClick()
+
+        assertEquals(
+            listOf<BusinessListAction>(BusinessListAction.OnBusinessLikeClick(businessUi = sections[0].businesses[0])),
+            actions
+        )
+    }
+
+    @Test
+    fun likeButton_followsStateChanges() {
+        var state by mutableStateOf(loaded)
+        composeRule.setContent {
+            BusinessListScreen(title = "Business", state = state, onAction = { actions += it })
+        }
+        likeButton("b1").assertIsOff()
+
+        state = loaded.copy(
+            content = UIState.Success(
+                persistentListOf(
+                    sections[0],
+                    sections[1].copy(
+                        businesses = persistentListOf(sections[1].businesses[0].copy(likeStatus = BusinessLikeStatus.LIKED))
+                    )
+                )
+            )
+        )
+
+        likeButton("b1").assertIsOn()
+    }
+
+    /** The list is lazy, so scroll the row into view before looking up its like button. */
+    private fun likeButton(id: String) = composeRule.run {
+        onNodeWithTag(BusinessTestTags.BUSINESS_LIST).performScrollToNode(hasTestTag(BusinessTestTags.likeButton(id)))
+        onNodeWithTag(BusinessTestTags.likeButton(id))
     }
 }

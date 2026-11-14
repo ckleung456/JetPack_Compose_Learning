@@ -11,7 +11,10 @@ object BusinessTestTags {
     const val ADDRESS_SOURCE_DIALOG = "business_address_source_dialog"
     const val ADDRESS_EDIT_DIALOG = "business_address_edit_dialog"
     const val ADDRESS_EDIT_FIELD = "business_address_edit_field"
+    const val DETAIL_LIKE_BUTTON = "business_detail_like_button"
 
     fun filterChip(filter: BusinessFilter) = "business_filter_${filter.name.lowercase()}"
     fun sectionHeader(category: BusinessCategory) = "business_section_${category.name.lowercase()}"
+    fun businessItem(businessId: String) = "business_item_$businessId"
+    fun likeButton(businessId: String) = "business_like_$businessId"
 }
