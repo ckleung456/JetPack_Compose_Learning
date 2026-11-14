@@ -1,41 +1,11 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.myapp.android.library)
+    alias(libs.plugins.myapp.android.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 android {
     namespace = "com.example.presentation"
-    compileSdk {
-        version = release(36)
-    }
-
-    defaultConfig {
-        minSdk = 24
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-    testOptions {
-        unitTests.isReturnDefaultValues = true
-        unitTests.isIncludeAndroidResources = true
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-        }
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
@@ -44,8 +14,6 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
-
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.material3)
@@ -61,14 +29,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
 
-    testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.junit)
-    testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.junit)
 }

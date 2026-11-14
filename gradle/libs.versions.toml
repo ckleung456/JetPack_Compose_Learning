@@ -16,7 +16,6 @@ immutable = "0.5.2"
 #navigation 3
 nav3Core = "1.0.0"
 lifecycleViewmodelNav3 = "2.10.0"
-kotlinSerialization = "2.2.0"
 kotlinxSerializationCore = "1.9.0"
 kotlinxCoroutines = "1.11.0"
 
@@ -44,7 +43,6 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -77,13 +75,27 @@ androidx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 androidx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
+# Gradle plugins, used by the convention plugins in build-logic
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+compose-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-parcelize = { id = "kotlin-parcelize" }
-jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization"}
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-secrets-gradle = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "googleSecrets" }
+
+# Convention plugins (build-logic)
+myapp-android-application = { id = "myapp.android.application" }
+myapp-android-library = { id = "myapp.android.library" }
+myapp-android-compose = { id = "myapp.android.compose" }
+myapp-android-hilt = { id = "myapp.android.hilt" }
+myapp-android-room = { id = "myapp.android.room" }
+myapp-android-feature = { id = "myapp.android.feature" }
+myapp-module-rules = { id = "myapp.module.rules" }

@@ -33,6 +33,7 @@ To refresh these, install the debug build (`./gradlew :app:installDebug`), open 
 
 ```
 MyApplication/
+├── build-logic/             # Included build with the Gradle convention plugins and module dependency rules
 ├── app/                     # Application shell: DI wiring, Room DB, top-level navigation, theme
 ├── core/
 │   ├── domain/              # Pure contracts: Result/EmptyResult, DataError/Kind, UseCaseOutputWithStatus, LocationAddressProvider
@@ -52,6 +53,52 @@ MyApplication/
 - **Features** each depend on `core:domain`, `core:presentation`, `core:network`, and `core:shared-lib`. Features never depend on each other; they are wired into the app only through navigation entry points.
 - **`core:location`** depends on `core:domain` and `core:shared-lib`.
 - **`core:network`**, **`core:presentation`**, and **`core:shared-lib`** expose `core:domain` via `api`. `core:domain` depends on nothing.
+
+These rules are **enforced by the build**, so the module graph can't form a cycle. The `myapp.module.rules` plugin (applied by every module through its convention plugin) checks each `project(...)` dependency as it is declared and fails at configuration time with the reason, e.g.:
+
+```
+Module dependency rule broken: :feature-business -> :feature-country (in 'implementation'):
+feature modules must not depend on each other (:feature-country); move shared code to a :core module
+```
+
+| From | May depend on |
+| --- | --- |
+| `:app` | anything |
+| `:feature-*` | `:core:*` only, never another feature |
+| `:core:*` | core modules in a **lower** layer only |
+| anything | never `:app` |
+
+Core layers (defined in `build-logic/.../ModuleRules.kt`):
+
+| Layer | Modules |
+| --- | --- |
+| 0 | `core:domain` |
+| 1 | `core:network`, `core:shared-lib` |
+| 2 | `core:presentation`, `core:location` |
+
+Every core edge points to a strictly lower layer, so two core modules can never depend on each other, directly or through others. A new core module must be added to `ModuleRules.coreLayers` with its layer; the build tells you if it's missing.
+
+### Gradle setup
+
+Module build files only declare what is specific to them. Everything shared lives in convention plugins in `build-logic` (an included build, registered with `includeBuild("build-logic")` in `settings.gradle.kts`). All versions come from `gradle/libs.versions.toml`, including the convention plugin ids.
+
+| Plugin | Applies | Used by |
+| --- | --- | --- |
+| `myapp.android.application` | AGP application + Kotlin, compileSdk/targetSdk 36, minSdk 24, Java/JVM 17, release build type, module rules | `app` |
+| `myapp.android.library` | AGP library + Kotlin, the same SDK/JVM settings, consumer ProGuard rules, module rules | every `core` module |
+| `myapp.android.compose` | Compose compiler, `buildFeatures.compose`, Compose BOM for main/test/androidTest, `ui-test-manifest`, Android resources in unit tests | `app`, `core:presentation`, `core:shared-lib` |
+| `myapp.android.hilt` | Hilt + KSP with `hilt-android`/`hilt-compiler` | `app`, `core:network`, `core:shared-lib`, `core:location` |
+| `myapp.android.room` | KSP with Room runtime/ktx/compiler | `app`, `feature-doordash` |
+| `myapp.android.feature` | library + compose + hilt, kotlinx.serialization, the secrets plugin with `BuildConfig`, the core modules, and the common feature and test libraries | every `feature-*` module |
+| `myapp.module.rules` | The dependency rules above | applied by the application and library plugins |
+
+Shared settings applied to every module:
+- `testInstrumentationRunner`, `unitTests.isReturnDefaultValues = true`, and the `junit`, `androidx-junit`, and `espresso-core` test dependencies.
+- The Kotlin compiler flag `-Xannotation-default-target=param-property`: an annotation on a constructor `val` (e.g. `@StringRes`) applies to both the parameter and the property.
+
+`gradle.properties` turns on parallel builds, the build cache, and the configuration cache, and gives the Gradle daemon a 4 GB heap (KSP and dex merging run in parallel).
+
+The rules have unit tests: `./gradlew :build-logic:convention:test`.
 
 ### Core modules
 
@@ -179,6 +226,7 @@ There are three kinds of tests:
 | Kind | Where | Runs on | Command |
 | --- | --- | --- | --- |
 | Unit tests | `<module>/src/test` | JVM | `./gradlew testDebugUnitTest` |
+| Build logic tests (module dependency rules) | `build-logic/convention/src/test` | JVM | `./gradlew :build-logic:convention:test` |
 | UI tests (Compose + Robolectric) | `<module>/src/test` (`*UiTest.kt`) | JVM, no device | `./gradlew testDebugUnitTest` |
 | Component instrumented tests (Compose) | `features/feature-business/src/androidTest` | Emulator or device | `./gradlew :feature-business:connectedDebugAndroidTest` |
 | End-to-end instrumented tests (Compose + Espresso) | `app/src/androidTest` | Emulator or device | `./gradlew :app:connectedDebugAndroidTest` |
@@ -193,11 +241,11 @@ Run a single module with e.g. `./gradlew :feature-business:testDebugUnitTest`. R
 - **Likes across screens.** Business tests build the list and detail ViewModels (or their use cases) on one shared `BusinessLikedStore`, the way the app's singleton links them. Toggling from one side and checking the other covers the list ↔ detail sync without navigation.
 - **Coroutines.** Each feature module has a `MainDispatcherRule` (in its `TestFixtures.kt`) that swaps `Dispatchers.Main` for an `UnconfinedTestDispatcher`. `runTest` shares its scheduler, so debounced search can be tested with `advanceTimeBy`.
 - **ViewModels.** `uiState` uses `stateIn(WhileSubscribed)`, so tests keep a collector running in `backgroundScope`. One-off events/channels are checked with Turbine. Where production code hops to `Dispatchers.IO` (Country and DoorDash repositories/ViewModels), tests wait with `uiState.first { … }` instead of reading `value`.
-- **Android stubs.** Modules with tests set `testOptions.unitTests.isReturnDefaultValues = true`, so `android.util.Log` calls are no-ops on the JVM.
+- **Android stubs.** The library and application convention plugins set `testOptions.unitTests.isReturnDefaultValues = true`, so `android.util.Log` calls are no-ops on the JVM.
 
 ### UI test approach
 
-- **Robolectric + Compose UI Test.** Screen and component tests use `createComposeRule()` with `@RunWith(AndroidJUnit4::class)`, so they run on the JVM inside `testDebugUnitTest` and need no emulator. They run against SDK 35 (`src/test/resources/robolectric.properties`). Modules with UI tests set `unitTests.isIncludeAndroidResources = true` so real string resources resolve, and add `ui-test-manifest` as a `debugImplementation` so the test activity is in the manifest.
+- **Robolectric + Compose UI Test.** Screen and component tests use `createComposeRule()` with `@RunWith(AndroidJUnit4::class)`, so they run on the JVM inside `testDebugUnitTest` and need no emulator. They run against SDK 35 (`src/test/resources/robolectric.properties`). The `myapp.android.compose` convention plugin sets `unitTests.isIncludeAndroidResources = true` so real string resources resolve, and adds `ui-test-manifest` as a `debugImplementation` so the test activity is in the manifest.
 - **Stateless screens are tested directly.** `BusinessListScreen` and `AddressDialog` get a `BusinessListState` and record the `BusinessListAction`s they send. Screens that take a ViewModel (`CountriesScreen`, `RestaurantScreen`, `BusinessDetailScreen`) get the real ViewModel built on the same fakes as the unit tests. Where the ViewModel hops to `Dispatchers.IO`, tests wait with `composeRule.waitUntil { … }`.
 - **Test tags.** The business screens use named tags from `BusinessTestTags` (address header, search field, filter chips, section headers, list, dialogs, `businessItem(id)` rows, `likeButton(id)` on each row, and `DETAIL_LIKE_BUTTON`). Like buttons are checked with `assertIsOn()`/`assertIsOff()`. The list is lazy, so tests scroll a row into view with `performScrollToNode` before checking its like button. Other screens are found by visible text and content descriptions.
 - **Component tests on a device.** `BusinessLikeInstrumentedTest` (`feature-business/src/androidTest`) renders `LikeToggleButton` and `BusinessList` on a real device with `createComposeRule()`. It needs no network or Hilt: like clicks flip a local set of liked ids, the same way the ViewModel rebuilds sections.

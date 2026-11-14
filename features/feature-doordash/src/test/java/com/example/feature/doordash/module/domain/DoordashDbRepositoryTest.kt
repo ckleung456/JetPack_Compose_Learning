@@ -28,7 +28,7 @@ class DoordashDbRepositoryTest {
         repository.saveLikedStatus(restaurantId = 7, likedStatus = LikedStatus.LIKED)
         repository.saveLikedStatus(restaurantId = 7, likedStatus = LikedStatus.UN_LIKED)
 
-        assertEquals(listOf(LikedDb(7, LikedStatus.UN_LIKED)), repository.getAllLikedStatus().first())
+        assertEquals(listOf(RestaurantLikedDb(7, LikedStatus.UN_LIKED)), repository.getAllLikedStatus().first())
     }
 
     @Test

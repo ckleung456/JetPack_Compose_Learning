@@ -1,19 +1,76 @@
+# ---------------------------------------------------------------------------
+# Build output (any module, including build-logic and nested included builds)
+# ---------------------------------------------------------------------------
+build/
+.gradle/
+.kotlin/
+.cxx/
+.externalNativeBuild/
+/captures/
+*.hprof
+
+# Generated / packaged artifacts
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output-metadata.json
+
+# Lint
+lint/outputs/
+lint/tmp/
+
+# ---------------------------------------------------------------------------
+# Local configuration and secrets (never commit)
+# ---------------------------------------------------------------------------
+# SDK path and API keys (YELP_API_TOKEN, endpoints) read by the secrets Gradle plugin
+local.properties
+# Signing keys
+*.jks
+*.keystore
+keystore.properties
+
+# ---------------------------------------------------------------------------
+# Android Studio / IntelliJ
+# Shared project settings (code style, inspections, run configurations, gradle.xml, ...) stay tracked;
+# per-user and per-machine state is ignored.
+# ---------------------------------------------------------------------------
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
+/.idea/caches/
+/.idea/libraries/
+/.idea/shelf/
 /.idea/modules.xml
 /.idea/workspace.xml
+/.idea/tasks.xml
+/.idea/usage.statistics.xml
+/.idea/dictionaries/
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-
-# Kotlin compiler caches / crash logs
-.kotlin/
 /.idea/markdown.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/studiobot.xml
+/.idea/AndroidProjectSystem.xml
+/.idea/androidTestResultsUserPreferences.xml
+/.idea/appInsightsSettings.xml
+/.idea/other.xml
+/.idea/sonarlint/
+/.idea/httpRequests/
+.navigation/
+
+# ---------------------------------------------------------------------------
+# Claude Code: personal settings (shared .claude/settings.json can be committed)
+# ---------------------------------------------------------------------------
+/.claude/settings.local.json
+
+# ---------------------------------------------------------------------------
+# OS / editor junk
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+*.log
