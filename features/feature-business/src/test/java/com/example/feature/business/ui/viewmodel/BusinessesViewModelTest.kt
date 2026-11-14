@@ -26,6 +26,7 @@ import com.example.feature.business.usecase.ToggleBusinessLikeUseCase
 import com.example.feature.business.usecase.SearchPizzaAndBeerUseCase
 import com.example.presentation.model.UIState
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -268,6 +269,91 @@ class BusinessesViewModelTest {
         // Sections still update from a single pipeline after resubscribing.
         viewModel.onAction(BusinessListAction.OnFilterSelect(BusinessFilter.BEER))
         assertEquals(listOf(BusinessCategory.BEER), viewModel.sections.map { it.category })
+    }
+
+    @Test
+    fun `resubscribing while the first load is in flight does not start a second request`() = runTest {
+        val gate = CompletableDeferred<Unit>().also { repository.searchGate = it }
+        val viewModel = viewModel()
+        val first = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        assertEquals(UIState.Loading, viewModel.state.content)
+
+        first.cancel()
+        advanceTimeBy(6_000)
+        subscribe(viewModel)
+
+        assertEquals(1, repository.requestedLocations.size)
+        gate.complete(Unit)
+        assertEquals(2, viewModel.sections.size)
+    }
+
+    // The in-flight guard must only apply to the automatic first load: a new address always reloads.
+    @Test
+    fun `entering an address while the first load is in flight loads the new address`() = runTest {
+        val gate = CompletableDeferred<Unit>().also { repository.searchGate = it }
+        repository.pizzaByLocation["Berkeley, CA"] = listOf(business(id = "p9", name = "Cheese Board"))
+        val viewModel = viewModel()
+        subscribe(viewModel)
+
+        viewModel.onAction(BusinessListAction.OnChooseEnterAddress)
+        viewModel.onAction(BusinessListAction.OnAddressTextChange("Berkeley, CA"))
+        viewModel.onAction(BusinessListAction.OnAddressConfirm)
+        gate.complete(Unit)
+
+        assertEquals(listOf(BusinessListState.DEFAULT_ADDRESS, "Berkeley, CA"), repository.requestedLocations)
+        assertEquals("Berkeley, CA", viewModel.state.address)
+        assertEquals(
+            mapOf(BusinessCategory.PIZZA to listOf("Cheese Board"), BusinessCategory.BEER to listOf("Brewery")),
+            viewModel.sections.names()
+        )
+    }
+
+    @Test
+    fun `device location arriving while the first load is in flight loads that address`() = runTest {
+        val gate = CompletableDeferred<Unit>().also { repository.searchGate = it }
+        val viewModel = viewModel()
+        subscribe(viewModel)
+
+        viewModel.onAction(BusinessListAction.OnLocationPermissionResult(granted = true))
+        gate.complete(Unit)
+
+        assertEquals(
+            listOf(BusinessListState.DEFAULT_ADDRESS, "500 Market St, San Francisco, CA"),
+            repository.requestedLocations
+        )
+        assertEquals(2, viewModel.sections.size)
+    }
+
+    @Test
+    fun `resubscribing after a failed first load tries again`() = runTest {
+        repository.pizzaError = IOException("pizza down")
+        repository.beerError = IOException("beer down")
+        val viewModel = viewModel()
+        val first = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        assertEquals(UIState.Error(message = "pizza down", kind = Kind.UNEXPECTED), viewModel.state.content)
+
+        first.cancel()
+        advanceTimeBy(6_000)
+        repository.pizzaError = null
+        repository.beerError = null
+        subscribe(viewModel)
+
+        assertEquals(2, repository.requestedLocations.size)
+        assertEquals(2, viewModel.sections.size)
+    }
+
+    @Test
+    fun `refresh while a load is in flight restarts it`() = runTest {
+        val gate = CompletableDeferred<Unit>().also { repository.searchGate = it }
+        val viewModel = viewModel()
+        subscribe(viewModel)
+
+        viewModel.onAction(BusinessListAction.OnRefresh)
+        gate.complete(Unit)
+
+        assertEquals(2, repository.requestedLocations.size)
+        assertEquals(2, viewModel.sections.size)
+        assertFalse(viewModel.state.isRefreshing)
     }
 
     @Test

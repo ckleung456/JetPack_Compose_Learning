@@ -6,9 +6,11 @@ import com.example.domain.location.LocationError
 import com.example.feature.business.model.domain.Business
 import com.example.feature.business.model.domain.BusinessDetail
 import com.example.feature.business.module.network.BusinessRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -83,15 +85,26 @@ class FakeBusinessRepository(
     var beerError: Throwable? = null
     var detailError: Throwable? = null
 
+    /** When set, pizza/beer searches suspend until it completes, to keep a load "in flight". */
+    var searchGate: CompletableDeferred<Unit>? = null
+
     val requestedLocations = mutableListOf<String>()
     val requestedDetailIds = mutableListOf<String>()
 
     override fun getPizza(location: String): Flow<List<Business>> {
         requestedLocations += location
-        return emitOrThrow(pizza, pizzaError)
+        return gated(emitOrThrow(pizzaByLocation[location] ?: pizza, pizzaError))
     }
 
-    override fun getBeer(location: String): Flow<List<Business>> = emitOrThrow(beer, beerError)
+    override fun getBeer(location: String): Flow<List<Business>> = gated(emitOrThrow(beer, beerError))
+
+    /** Pizza results for specific locations; other locations get [pizza]. */
+    val pizzaByLocation = mutableMapOf<String, List<Business>>()
+
+    private fun <T> gated(source: Flow<T>): Flow<T> {
+        val gate = searchGate ?: return source
+        return flow { gate.await(); emitAll(source) }
+    }
 
     override fun getBusinessDetail(id: String): Flow<BusinessDetail> {
         requestedDetailIds += id

@@ -76,8 +76,7 @@ class BusinessesViewModel @Inject constructor(
     )
     val uiState = _uiState
         .onStart {
-            if (!hasLoaded) {
-                hasLoaded = true
+            if (!hasLoaded && loadJob?.isActive != true) {
                 loadBusinesses(isRefreshing = false)
             }
         }
@@ -213,6 +212,7 @@ class BusinessesViewModel @Inject constructor(
     private fun onLoadSucceeded(result: NearByBusinessesUi) {
         _uiState.update { it.copy(isRefreshing = false) }
         nearByBusinesses.value = result
+        hasLoaded = true
         result.failedCategories.forEach { category ->
             val message = when(category) {
                 BusinessCategory.PIZZA -> R.string.partial_failure_pizza
